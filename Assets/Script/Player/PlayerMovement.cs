@@ -5,37 +5,47 @@ using UnityEngine;
 /// </summary>
 public sealed class PlayerMovement : MonoBehaviour
 {
-    [SerializeField]
-    private PlayerInputReader input;
+
+    public void Initialize(PlayerModel playerModel)
+    {
+        _stats = playerModel;
+    }
 
     [SerializeField]
-    private Transform groundCheck;
-
-    [Header("移動関連")]
-    [SerializeField]
-    private float moveSpeed = 5f;
+    private PlayerInputReader _input;
 
     [SerializeField]
-    private float jumpSpeed = 10f;
+    private PlayerView _view;
+
+    [SerializeField]
+    private Transform _groundCheck;
 
     [Header("地面判定")]
     [SerializeField]
-    private float groundCheckRadius = 0.15f;
+    private float _groundCheckRadius = 0.15f;
 
     [SerializeField]
-    private LayerMask groundLayer;
+    private LayerMask _groundLayer;
 
-    private Rigidbody2D body;
+    private Rigidbody2D _body;
+    private PlayerModel _stats;
 
     private void Awake()
     {
-        body = GetComponent<Rigidbody2D>();
+        _body = GetComponent<Rigidbody2D>();
     }
 
     private void FixedUpdate()
     {
         MoveHorizontally();
         TryJump();
+        UpdateView();
+    }
+
+    private void UpdateView()
+    {
+        bool isGrounded = IsGrounded();
+        _view.SetFacing(_input.MoveX);
     }
 
     /// <summary>
@@ -43,9 +53,9 @@ public sealed class PlayerMovement : MonoBehaviour
     /// </summary>
     private void MoveHorizontally()
     {
-        body.linearVelocity = new Vector2(
-            input.MoveX * moveSpeed,
-            body.linearVelocity.y
+        _body.linearVelocity = new Vector2(
+            _input.MoveX * _stats.MoveSpeed,
+            _body.linearVelocity.y
         );
     }
 
@@ -54,13 +64,13 @@ public sealed class PlayerMovement : MonoBehaviour
     /// </summary>
     private void TryJump()
     {
-        bool jumpRequested = input.ConsumeJump();
+        bool jumpRequested = _input.ConsumeJump();
 
         if (jumpRequested && IsGrounded())
         {
-            body.linearVelocity = new Vector2(
-                body.linearVelocity.x,
-                jumpSpeed
+            _body.linearVelocity = new Vector2(
+                _body.linearVelocity.x,
+                _stats.JumpSpeed
             );
         }
     }
@@ -71,9 +81,9 @@ public sealed class PlayerMovement : MonoBehaviour
     private bool IsGrounded()
     {
         return Physics2D.OverlapCircle(
-            groundCheck.position,
-            groundCheckRadius,
-            groundLayer
+            _groundCheck.position,
+            _groundCheckRadius,
+            _groundLayer
         );
     }
 }
