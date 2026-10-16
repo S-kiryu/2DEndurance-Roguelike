@@ -7,6 +7,8 @@ public sealed class EnemySpawner : MonoBehaviour
 {
     [SerializeField]
     private Transform[] spawnPoints;
+    [SerializeField]
+    private GameObject player;
 
     public WaveEnemyHandle Spawn(GameObject enemyPrefab)
     {
@@ -23,6 +25,13 @@ public sealed class EnemySpawner : MonoBehaviour
             spawnPoint.position,
             spawnPoint.rotation
         );
+
+        EnemyMove enemyMove = enemy.GetComponent<EnemyMove>();
+
+        if (enemyMove != null)
+        {
+            enemyMove.Initialize(player);
+        }
 
         WaveEnemyHandle handle =
             enemy.GetComponent<WaveEnemyHandle>();

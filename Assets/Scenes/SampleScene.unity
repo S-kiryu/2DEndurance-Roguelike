@@ -1127,6 +1127,7 @@ MonoBehaviour:
   spawnPoints:
   - {fileID: 1779056322}
   - {fileID: 1758321658}
+  player: {fileID: 1067432062}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

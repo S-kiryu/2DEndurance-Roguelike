@@ -16,5 +16,5 @@ MonoBehaviour:
   intervalBetweenWaves: 5
   waves:
   - enemies:
-    - enemyPrefab: {fileID: 4391107071615992110, guid: 25a3c1d528654914b9c488c8a7f57485, type: 3}
+    - enemyPrefab: {fileID: 8037015100712895834, guid: 6fff6a1ed71088a459f366288d8e2458, type: 3}
       count: 10
