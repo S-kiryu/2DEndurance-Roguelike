@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0dfab51e81a244daf559ab89dfb6a8, type: 3}
+  m_Name: NewGunData
+  m_EditorClassIdentifier: Assembly-CSharp::GunData
+  stats:
+    WeaponName: 
+    Icon: {fileID: 0}
+    Description: 
+    Damage: 0
+    CriticalRate: 0
+    CriticalMultiplier: 1.5
+    AttackInterval: 1
+    AttackSpeed: 0
+    MaxEnchantLevel: 5
+  weaponPrefab: {fileID: 8114830943139020147, guid: 25a3c1d528654914b9c488c8a7f57485, type: 3}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 10
+  penetrationCount: 0
