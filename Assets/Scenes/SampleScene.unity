@@ -604,7 +604,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fd78c51427047749836a70591ebbd11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputReader
-  moveAction: {fileID: -2360802565958142083, guid: d0d03613c96e33b4ba5a85c5fc678dac, type: 3}
+  moveLeftAction: {fileID: 4198306200788434180, guid: d0d03613c96e33b4ba5a85c5fc678dac, type: 3}
+  moveRightAction: {fileID: -8603597446695860782, guid: d0d03613c96e33b4ba5a85c5fc678dac, type: 3}
   jumpAction: {fileID: -6227678742328473989, guid: d0d03613c96e33b4ba5a85c5fc678dac, type: 3}
 --- !u!114 &1067432064
 MonoBehaviour:
