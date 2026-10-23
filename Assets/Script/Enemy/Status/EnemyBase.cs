@@ -3,14 +3,14 @@ using UnityEngine;
 /// <summary>
 /// 敵のベースクラス
 /// </summary>
-public abstract class EnemyBase : MonoBehaviour
+public abstract class EnemyBase : MonoBehaviour, IDamageable
 {
     [SerializeField] private EnemyStatusData statusData;
 
     public int CurrentHP { get; private set; }
 
-    protected int Damage => statusData.Damage;
-    protected float Speed => statusData.Speed;
+    public int Damage => statusData.Damage;
+    public float Speed => statusData.Speed;
 
     protected virtual void Awake()
     {
@@ -26,6 +26,19 @@ public abstract class EnemyBase : MonoBehaviour
         }
 
         CurrentHP = statusData.MaxHP;
+    }
+
+    public virtual void Initialize(GameObject player)
+    {
+        if (statusData == null)
+        {
+            return;
+        }
+
+        if (TryGetComponent(out EnemyMove enemyMove))
+        {
+            enemyMove.Initialize(player, statusData.Speed);
+        }
     }
 
     public virtual void TakeDamage(int amount)

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6521280593977015225}
   - component: {fileID: 1296402032840924494}
   - component: {fileID: -2243552409920050201}
+  - component: {fileID: -2026296528029101790}
   m_Layer: 0
   m_Name: Square (1)
   m_TagString: Untagged
@@ -134,3 +135,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMove
   moveSpeed: 2
+--- !u!114 &-2026296528029101790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8037015100712895834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43083f0b5e133f143aaf29d97aafe143, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TestEnemy
+  statusData: {fileID: 11400000, guid: 9e6b3560b8513a0489ace762f43f4627, type: 2}

@@ -31,11 +31,11 @@ public sealed class EnemySpawner : MonoBehaviour
             spawnPoint.rotation
         );
 
-        EnemyMove enemyMove = enemy.GetComponent<EnemyMove>();
+        EnemyBase enemyBase = enemy.GetComponent<EnemyBase>();
 
-        if (enemyMove != null)
+        if (enemyBase != null)
         {
-            enemyMove.Initialize(player);
+            enemyBase.Initialize(player);
         }
 
         WaveEnemyHandle handle =

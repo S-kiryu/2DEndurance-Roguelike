@@ -14,17 +14,16 @@ public sealed class EnemyMove : MonoBehaviour
         body = GetComponent<Rigidbody2D>();
     }
 
-    public void Initialize(GameObject playerObject)
+    public void Initialize(GameObject playerObject, float speed)
     {
         if (playerObject == null)
         {
-            Debug.LogWarning(
-                $"{name}: Playerが設定されていません。"
-            );
+            Debug.LogWarning($"{name}: Playerが設定されていません。");
             return;
         }
 
         player = playerObject.transform;
+        moveSpeed = speed;
     }
 
     private void FixedUpdate()
