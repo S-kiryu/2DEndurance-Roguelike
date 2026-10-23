@@ -10,6 +10,11 @@ public sealed class EnemySpawner : MonoBehaviour
     [SerializeField]
     private GameObject player;
 
+    /// <summary>
+    /// 敵のスポーン処理
+    /// </summary>
+    /// <param name="enemyPrefab"></param>
+    /// <returns></returns>
     public WaveEnemyHandle Spawn(GameObject enemyPrefab)
     {
         if (enemyPrefab == null)
