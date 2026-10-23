@@ -14,6 +14,10 @@ public class WeaponManager : MonoBehaviour
     [SerializeField]
     private List<Weapon> weapons = new();
 
+    [Header("開始時に装備する武器")]
+    [SerializeField]
+    private List<WeaponData> startingWeapons = new();
+
     private void Awake()
     {
         if (weaponMount == null)
@@ -21,11 +25,21 @@ public class WeaponManager : MonoBehaviour
             weaponMount = transform;
         }
 
-        foreach (Weapon weapon in weapons)
+        for (int i = weapons.Count - 1; i >= 0; i--)
         {
-            if (weapon != null)
+            Weapon weapon = weapons[i];
+
+            if (weapon == null || !InitializeWeapon(weapon))
             {
-                InitializeWeapon(weapon);
+                weapons.RemoveAt(i);
+            }
+        }
+
+        foreach (WeaponData weaponData in startingWeapons)
+        {
+            if (weaponData != null)
+            {
+                EquipWeapon(weaponData);
             }
         }
     }
@@ -49,51 +63,80 @@ public class WeaponManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 武器Prefabを生成して装備する
+    /// 武器データに登録されたPrefabを生成して装備する
     /// </summary>
-    public Weapon EquipWeapon(Weapon weaponPrefab)
+    public Weapon EquipWeapon(WeaponData weaponData)
     {
-        if (weaponPrefab == null)
+        if (weaponData == null || weaponData.WeaponPrefab == null)
+        {
+            Debug.LogWarning("WeaponDataまたはWeaponPrefabが設定されていません。", this);
             return null;
+        }
 
-        Weapon weapon = Instantiate(weaponPrefab, weaponMount);
+        Weapon weapon = Instantiate(weaponData.WeaponPrefab, weaponMount);
 
-        weapon.transform.SetLocalPositionAndRotation(
-            Vector3.zero,
-            Quaternion.identity
-        );
+        if (!AddWeapon(weapon, weaponData))
+        {
+            Destroy(weapon.gameObject);
+            return null;
+        }
 
-        AddWeapon(weapon);
         return weapon;
     }
 
     /// <summary>
     /// 生成済みの武器を管理対象へ追加する
     /// </summary>
-    public void AddWeapon(Weapon weapon)
+    public bool AddWeapon(Weapon weapon, WeaponData weaponData = null)
     {
         if (weapon == null || weapons.Contains(weapon))
-            return;
+            return false;
+
+        if (!InitializeWeapon(weapon, weaponData))
+            return false;
 
         weapons.Add(weapon);
-        InitializeWeapon(weapon);
+        return true;
     }
 
-    public void RemoveWeapon(Weapon weapon)
+    /// <summary>
+    /// 武器を外す処理
+    /// </summary>
+    /// <param name="weapon">外す武器</param>
+    /// <param name="destroyInstance">なくすかどうか</param>
+    /// <returns></returns>
+    public bool UnequipWeapon(Weapon weapon, bool destroyInstance = true)
     {
         if (weapon == null)
-            return;
+            return false;
 
         if (!weapons.Remove(weapon))
-            return;
+            return false;
 
         weapon.Unequip();
-        Destroy(weapon.gameObject);
+
+        if (destroyInstance)
+        {
+            Destroy(weapon.gameObject);
+        }
+
+        return true;
     }
 
-    private void InitializeWeapon(Weapon weapon)
+    /// <summary>
+    /// 武器の生成
+    /// </summary>
+    /// <param name="weapon"></param>
+    /// <param name="weaponData"></param>
+    /// <returns></returns>
+    private bool InitializeWeapon(Weapon weapon, WeaponData weaponData = null)
     {
-        weapon.transform.SetParent(weaponMount, false);
-        weapon.Equip(transform);
+        weapon.Equip(weaponMount);
+
+        if (weapon.Initialize(weaponData))
+            return true;
+
+        weapon.Unequip();
+        return false;
     }
 }

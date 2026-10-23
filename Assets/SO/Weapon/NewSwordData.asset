@@ -13,15 +13,17 @@ MonoBehaviour:
   m_Name: NewSwordData
   m_EditorClassIdentifier: Assembly-CSharp::SwordData
   stats:
-    WeaponName: 
+    WeaponName: Test Sword
     Icon: {fileID: 0}
     Description: 
-    Damage: 0
-    CriticalRate: 0
-    CriticalMultiplier: 1.5
-    AttackInterval: 1
-    AttackSpeed: 0
+    Damage: 20
+    CriticalRate: 0.15
+    CriticalMultiplier: 2
+    AttackInterval: 0.65
     MaxEnchantLevel: 5
-  weaponPrefab: {fileID: 0}
-  attackRange: 1
-  attackAngle: 90
+  weaponPrefab: {fileID: 3003, guid: 928ff4433d914c1c899248f02be8e81e, type: 3}
+  attackRange: 2.2
+  attackAngle: 110
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 0

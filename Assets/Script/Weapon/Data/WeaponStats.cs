@@ -1,6 +1,9 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// 武器のステータス
+/// </summary>
 [Serializable]
 public class WeaponStats
 {
@@ -13,7 +16,7 @@ public class WeaponStats
 
     [Header("戦闘性能")]
     [Min(0f)]
-    public float Damage;
+    public int Damage = 1;
 
     [Range(0f, 1f)]
     public float CriticalRate;
@@ -23,9 +26,6 @@ public class WeaponStats
 
     [Min(0.01f)]
     public float AttackInterval = 1f;
-
-    [Min(0)]
-    public int AttackSpeed = 0;
 
     [Header("強化")]
     [Min(0)]

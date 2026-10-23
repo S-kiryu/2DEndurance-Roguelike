@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -6,7 +5,13 @@ using UnityEngine;
 /// </summary>
 public abstract class Weapon : MonoBehaviour
 {
-    private float Interval = 0f;
+    [SerializeField]
+    private WeaponData data;
+
+    private float cooldownRemaining;
+
+    protected WeaponData Data => data;
+    protected WeaponStats Stats => data.Stats;
 
     /// <summary>
     /// クールタイムが経過したかどうかを確認し、攻撃可能であれば攻撃を行う
@@ -14,38 +19,82 @@ public abstract class Weapon : MonoBehaviour
     /// <param name="deltaTime"></param>
     public void Tick(float deltaTime)
     {
-        Interval -= deltaTime;
-
-        if (Interval <= 0f && CanAttack())
+        if (data == null)
         {
-            Attack();
-            Interval = GetAttackInterval();
+            return;
+        }
+
+        cooldownRemaining = Mathf.Max(cooldownRemaining - deltaTime, 0f);
+
+        if (cooldownRemaining <= 0f && TryAttack())
+        {
+            cooldownRemaining = Stats.AttackInterval;
         }
     }
 
-    public void Equip(Transform transform)
+    public bool Initialize(WeaponData weaponData = null)
     {
-        this.transform.SetParent(transform);
-        gameObject.SetActive(true);    
+        if (weaponData != null)
+        {
+            data = weaponData;
+        }
+
+        if (data == null)
+        {
+            Debug.LogError($"{name}: WeaponDataが設定されていません。", this);
+            return false;
+        }
+
+        if (!IsCompatibleData(data))
+        {
+            Debug.LogError(
+                $"{name}: {GetType().Name}に対応していないWeaponData ({data.GetType().Name}) です。",
+                this
+            );
+            return false;
+        }
+
+        cooldownRemaining = 0f;
+        OnInitialized();
+        return true;
     }
 
+    /// <summary>
+    /// つける
+    /// </summary>
+    /// <param name="mount"></param>
+    public void Equip(Transform mount)
+    {
+        transform.SetParent(mount, false);
+        transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+        gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// 外す
+    /// </summary>
     public void Unequip()
     {
         gameObject.SetActive(false);
     }
 
     /// <summary>
-    /// インターバルを取得するメソット
+    /// ダメージ計算
     /// </summary>
     /// <returns></returns>
-    protected abstract float GetAttackInterval();
-    /// <summary>
-    /// 攻撃できるかどうかを判定するメソット
-    /// </summary>
-    /// <returns></returns>
-    protected abstract bool CanAttack();
-    /// <summary>
-    /// 攻撃処理を行うメソット
-    /// </summary>
-    protected abstract void Attack();
+    protected int CalculateDamage()
+    {
+        bool isCritical = Random.value < Stats.CriticalRate;
+        float multiplier = isCritical ? Stats.CriticalMultiplier : 1f;
+        return Mathf.Max(1, Mathf.RoundToInt(Stats.Damage * multiplier));
+    }
+
+    protected virtual void OnInitialized()
+    {
+    }
+
+    protected abstract bool IsCompatibleData(WeaponData weaponData);
+
+    /// <summary>攻撃できた場合だけtrueを返す。</summary>
+    protected abstract bool TryAttack();
 }
