@@ -31,6 +31,9 @@ public sealed class PlayerInputReader : MonoBehaviour
     private bool jumpRequested;
     private float lastPressedDirection;
 
+    /// <summary>
+    /// 移動の数値　1右、-1左、0待機
+    /// </summary>
     public float MoveX
     {
         get
@@ -52,6 +55,28 @@ public sealed class PlayerInputReader : MonoBehaviour
 
             return 0f;
         }
+    }
+
+    /// <summary>
+    /// 指定したワールド座標を基準にしたマウスの方向。右なら1、左なら-1、
+    /// マウスやカメラが取得できない場合、同じX座標にある場合は0を返す。
+    /// </summary>
+    public float GetMouseDirectionX(Vector3 targetWorldPosition, Camera worldCamera)
+    {
+        if (Mouse.current == null || worldCamera == null)
+        {
+            return 0f;
+        }
+
+        float mouseX = Mouse.current.position.ReadValue().x;
+        float targetScreenX = worldCamera.WorldToScreenPoint(targetWorldPosition).x;
+
+        if (Mathf.Approximately(mouseX, targetScreenX))
+        {
+            return 0f;
+        }
+
+        return mouseX < targetScreenX ? -1f : 1f;
     }
 
     private void OnEnable()
