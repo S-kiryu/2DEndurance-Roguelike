@@ -35,9 +35,12 @@ public class Sword : Weapon
             layerMask
         );
 
-        Vector2 attackDirection = transform.lossyScale.x < 0f
-            ? -transform.right
-            : transform.right;
+        Transform facingRoot = transform.parent != null
+            ? transform.parent
+            : transform;
+        Vector2 attackDirection = facingRoot.lossyScale.x < 0f
+            ? Vector2.left
+            : Vector2.right;
 
         hitTargets.Clear();
 
