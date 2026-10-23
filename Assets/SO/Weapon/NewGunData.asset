@@ -13,16 +13,15 @@ MonoBehaviour:
   m_Name: NewGunData
   m_EditorClassIdentifier: Assembly-CSharp::GunData
   stats:
-    WeaponName: 
+    WeaponName: Test Gun
     Icon: {fileID: 0}
     Description: 
-    Damage: 0
-    CriticalRate: 0
-    CriticalMultiplier: 1.5
-    AttackInterval: 1
-    AttackSpeed: 0
+    Damage: 10
+    CriticalRate: 0.1
+    CriticalMultiplier: 2
+    AttackInterval: 0.3
     MaxEnchantLevel: 5
   weaponPrefab: {fileID: 8114830943139020147, guid: 25a3c1d528654914b9c488c8a7f57485, type: 3}
-  projectilePrefab: {fileID: 0}
-  projectileSpeed: 10
-  penetrationCount: 0
+  projectilePrefab: {fileID: 5005, guid: 16382bc6a82a481da5eb6069951347f1, type: 3}
+  projectileSpeed: 12
+  penetrationCount: 1

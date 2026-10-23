@@ -10,12 +10,20 @@ using UnityEngine;
 public class GunData : WeaponData
 {
     [Header("遠距離武器の設定")]
-    public GameObject projectilePrefab;
+    [SerializeField]
+    private Projectile projectilePrefab;
 
-    [Min(0f)]
-    public float projectileSpeed = 10f;
+    [SerializeField, Min(0f)]
+    private float projectileSpeed = 10f;
 
     // 貫通する敵の数
-    [Min(0)]
-    public int penetrationCount;
+    [SerializeField, Min(0)]
+    private int penetrationCount;
+
+    public Projectile ProjectilePrefab => projectilePrefab;
+    public float ProjectileSpeed => projectileSpeed;
+    /// <summary>
+    /// 貫通回数
+    /// </summary>
+    public int PenetrationCount => penetrationCount;
 }

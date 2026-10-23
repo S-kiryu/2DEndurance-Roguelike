@@ -29,10 +29,12 @@ public sealed class PlayerMovement : MonoBehaviour
 
     private Rigidbody2D _body;
     private PlayerModel _stats;
+    private Camera _mainCamera;
 
     private void Awake()
     {
         _body = GetComponent<Rigidbody2D>();
+        _mainCamera = Camera.main;
     }
 
     private void FixedUpdate()
@@ -44,8 +46,12 @@ public sealed class PlayerMovement : MonoBehaviour
 
     private void UpdateView()
     {
-        bool isGrounded = IsGrounded();
-        _view.SetFacing(_input.MoveX);
+        float mouseDirection = _input.GetMouseDirectionX(
+            transform.position,
+            _mainCamera
+        );
+
+        _view.SetFacing(mouseDirection);
     }
 
     /// <summary>

@@ -1,28 +1,51 @@
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
 /// <summary>
 /// 銃のクラス
 /// </summary>
 public class Gun : Weapon
 {
-    [SerializeField] private GunData data;
-    private GameObject projectilePrefab;
+    [SerializeField]
     private Transform firePoint;
 
-    protected override float GetAttackInterval()
+    private GunData gunData;
+
+    protected override bool IsCompatibleData(WeaponData weaponData)
     {
-        return data.Stats.AttackInterval;
+        return weaponData is GunData;
     }
 
-    protected override bool CanAttack()
+    protected override void OnInitialized()
     {
+        gunData = (GunData)Data;
+    }
+
+    protected override bool TryAttack()
+    {
+        if (gunData.ProjectilePrefab == null)
+        {
+            return false;
+        }
+
+        Transform spawnPoint = firePoint != null ? firePoint : transform;
+        Vector2 direction = transform.lossyScale.x < 0f
+            ? -spawnPoint.right
+            : spawnPoint.right;
+
+        Projectile projectile = Instantiate(
+            gunData.ProjectilePrefab,
+            spawnPoint.position,
+            Quaternion.FromToRotation(Vector3.right, direction)
+        );
+
+        projectile.Initialize(
+            direction,
+            gunData.ProjectileSpeed,
+            CalculateDamage(),
+            gunData.PenetrationCount,
+            transform.root.gameObject
+        );
+
         return true;
-    }
-
-    protected override void Attack()
-    {
-        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
-        Debug.Log("弾を生成");
     }
 }
