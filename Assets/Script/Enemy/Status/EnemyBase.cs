@@ -5,22 +5,39 @@ using UnityEngine;
 /// </summary>
 public abstract class EnemyBase : MonoBehaviour
 {
-    [SerializeField] private int maxHP = 100;
-    [SerializeField] private int damage = 10;
-    [SerializeField] private float speed = 2f;
+    [SerializeField] private EnemyStatusData statusData;
 
-    protected StatusBase Status { get; private set; }
+    public int CurrentHP { get; private set; }
+
+    protected int Damage => statusData.Damage;
+    protected float Speed => statusData.Speed;
 
     protected virtual void Awake()
     {
-        Status = new StatusBase(maxHP, damage, speed);
+        if (statusData == null)
+        {
+            Debug.LogError(
+                $"{name} に EnemyStatusData が設定されていません。",
+                this
+            );
+
+            enabled = false;
+            return;
+        }
+
+        CurrentHP = statusData.MaxHP;
     }
 
     public virtual void TakeDamage(int amount)
     {
-        Status.TakeDamage(amount);
+        if (amount <= 0 || CurrentHP <= 0)
+        {
+            return;
+        }
 
-        if (Status.IsDead)
+        CurrentHP = Mathf.Max(CurrentHP - amount, 0);
+
+        if (CurrentHP == 0)
         {
             Die();
         }
