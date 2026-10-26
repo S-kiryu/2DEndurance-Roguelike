@@ -881,7 +881,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!114 &1067432069
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -896,6 +896,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerView
   visualRoot: {fileID: 1067432066}
   animator: {fileID: 0}
+  damageRenderer: {fileID: 1067432065}
+  damageFlashDuration: 0.15
 --- !u!114 &1067432070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1260,6 +1262,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WaveController
   sequenceData: {fileID: 11400000, guid: cbda262ec089bc84084a208cd04269fd, type: 2}
   enemySpawner: {fileID: 2081137964}
+  playerPresenter: {fileID: 1067432070}
   playOnStart: 1
 --- !u!4 &2081137963
 Transform:

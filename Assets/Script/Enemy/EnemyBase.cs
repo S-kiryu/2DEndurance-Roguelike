@@ -7,6 +7,8 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable
 {
     [SerializeField] private EnemyStatusData statusData;
 
+    private IDamageable playerDamageable;
+
     public int CurrentHP { get; private set; }
 
     public int Damage => statusData.Damage;
@@ -30,6 +32,10 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable
 
     public virtual void Initialize(GameObject player)
     {
+        playerDamageable = player != null
+            ? player.GetComponentInParent<IDamageable>()
+            : null;
+
         if (statusData == null)
         {
             return;
@@ -38,6 +44,33 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable
         if (TryGetComponent(out EnemyMove enemyMove))
         {
             enemyMove.Initialize(player, statusData.Speed);
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        TryDealContactDamage(collision.collider);
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        TryDealContactDamage(collision.collider);
+    }
+
+    private void TryDealContactDamage(Collider2D other)
+    {
+        if (!isActiveAndEnabled || statusData == null ||
+            CurrentHP <= 0 || playerDamageable == null)
+        {
+            return;
+        }
+
+        // 追跡対象のプレイヤーだけを攻撃する。子のColliderにも対応する。
+        IDamageable target = other.GetComponentInParent<IDamageable>();
+
+        if (ReferenceEquals(target, playerDamageable))
+        {
+            target.TakeDamage(Damage);
         }
     }
 

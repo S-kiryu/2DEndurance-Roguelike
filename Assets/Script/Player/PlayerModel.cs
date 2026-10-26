@@ -7,6 +7,8 @@ using UnityEngine;
 [Serializable]
 public sealed class PlayerModel
 {
+    public event Action Died;
+
     public int MaxHealth => _maxHealth;
     public int CurrentHealth { get; private set; }
 
@@ -38,7 +40,7 @@ public sealed class PlayerModel
 
     public void TakeDamage(int damage)
     {
-        if (IsInvincible || !IsAlive)
+        if (damage <= 0 || IsInvincible || !IsAlive)
         {
             return;
         }
@@ -74,6 +76,6 @@ public sealed class PlayerModel
 
     private void OnPlayerDead()
     {
-        // GameFlowPresenterへ死亡を通知する
+        Died?.Invoke();
     }
 }
