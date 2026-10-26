@@ -49,11 +49,16 @@ public sealed class WaveSequenceData : ScriptableObject
     [SerializeField]
     private float intervalBetweenWaves = 5f;
 
+    [Tooltip("1ループ終了ごとに掛ける倍率。1なら変化なし")]
+    [SerializeField, Min(1f)]
+    private float multiplierPerLoop = 1.2f;
+
     [Header("Waveごとの敵構成")]
     [SerializeField]
     private List<WaveData> waves = new();
 
     public float WaveDuration => waveDuration;
     public float IntervalBetweenWaves => intervalBetweenWaves;
+    public float MultiplierPerLoop => multiplierPerLoop;
     public IReadOnlyList<WaveData> Waves => waves;
 }

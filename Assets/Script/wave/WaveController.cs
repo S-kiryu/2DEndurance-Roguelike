@@ -9,13 +9,16 @@ public sealed class WaveController : MonoBehaviour
 {
     public event Action<int> WaveStarted;
     public event Action<int> WaveEnded;
-    public event Action SequenceCompleted;
+    public event Action SurvivalEnded;
 
     [SerializeField]
     private WaveSequenceData sequenceData;
 
     [SerializeField]
     private EnemySpawner enemySpawner;
+
+    [SerializeField]
+    private PlayerPresenter playerPresenter;
 
     [SerializeField]
     private bool playOnStart = true;
@@ -33,6 +36,34 @@ public sealed class WaveController : MonoBehaviour
 
     public int CurrentWaveNumber => waveIndex + 1;
     public int AliveEnemyCount => aliveEnemies.Count;
+
+    /// <summary>
+    /// 登録された全Waveを一巡するごとに増える、1始まりのループ番号。
+    /// </summary>
+    public int CurrentLoopNumber
+    {
+        get
+        {
+            if (sequenceData == null ||
+                sequenceData.Waves == null ||
+                sequenceData.Waves.Count == 0)
+            {
+                return 1;
+            }
+
+            return waveIndex / sequenceData.Waves.Count + 1;
+        }
+    }
+
+    /// <summary>
+    /// 初回は1倍。全Waveを一巡するたびに共通設定の倍率を累積する。
+    /// </summary>
+    public float CurrentEnemyMultiplier => sequenceData == null
+        ? 1f
+        : Mathf.Pow(
+            sequenceData.MultiplierPerLoop,
+            CurrentLoopNumber - 1
+        );
 
     public float WaveRemainingTime
     {
@@ -55,6 +86,22 @@ public sealed class WaveController : MonoBehaviour
         if (playOnStart)
         {
             StartSequence();
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (playerPresenter != null)
+        {
+            playerPresenter.PlayerDied += OnPlayerDied;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (playerPresenter != null)
+        {
+            playerPresenter.PlayerDied -= OnPlayerDied;
         }
     }
 
@@ -112,6 +159,12 @@ public sealed class WaveController : MonoBehaviour
             return false;
         }
 
+        if (playerPresenter == null)
+        {
+            Debug.LogWarning("PlayerPresenterが設定されていません。");
+            return false;
+        }
+
         if (sequenceData.Waves == null ||
             sequenceData.Waves.Count == 0)
         {
@@ -127,7 +180,8 @@ public sealed class WaveController : MonoBehaviour
     /// </summary>
     private void BeginWave()
     {
-        WaveData wave = sequenceData.Waves[waveIndex];
+        int waveDataIndex = waveIndex % sequenceData.Waves.Count;
+        WaveData wave = sequenceData.Waves[waveDataIndex];
 
         //前のウェーブの時間や敵の生成位置を引き継がないようにリセット
         waveElapsedTime = 0f;
@@ -140,7 +194,6 @@ public sealed class WaveController : MonoBehaviour
 
         // 0秒を割り当てられた敵をその場で生成する
         SpawnDueEnemies();
-        CheckEarlyCompletion();
     }
 
     /// <summary>
@@ -204,11 +257,6 @@ public sealed class WaveController : MonoBehaviour
 
         SpawnDueEnemies();
 
-        if (CheckEarlyCompletion())
-        {
-            return;
-        }
-
         if (waveElapsedTime >= sequenceData.WaveDuration)
         {
             FinishWave();
@@ -269,32 +317,6 @@ public sealed class WaveController : MonoBehaviour
 
         enemy.Removed -= OnEnemyRemoved;
         aliveEnemies.Remove(enemy);
-
-        if (state == WaveState.Running)
-        {
-            CheckEarlyCompletion();
-        }
-    }
-
-    /// <summary>
-    /// ウェーブを早期終了救る関数
-    /// </summary>
-    /// <returns></returns>
-    private bool CheckEarlyCompletion()
-    {
-        bool allEnemiesSpawned =
-            nextSpawnIndex >= spawnPlans.Count;
-
-        bool allEnemiesDefeated =
-            aliveEnemies.Count == 0;
-
-        if (!allEnemiesSpawned || !allEnemiesDefeated)
-        {
-            return false;
-        }
-
-        FinishWave();
-        return true;
     }
 
     /// <summary>
@@ -310,17 +332,9 @@ public sealed class WaveController : MonoBehaviour
         spawnPlans.Clear();
 
         WaveEnded?.Invoke(CurrentWaveNumber);
-        Debug.Log("位置ウェーブ終了");
+        Debug.Log($"Wave {CurrentWaveNumber} 終了");
 
         waveIndex++;
-
-        if (waveIndex >= sequenceData.Waves.Count)
-        {
-            state = WaveState.Completed;
-            SequenceCompleted?.Invoke();
-            Debug.Log("ゲーム終了");
-            return;
-        }
 
         intervalRemainingTime =
             sequenceData.IntervalBetweenWaves;
@@ -348,6 +362,18 @@ public sealed class WaveController : MonoBehaviour
         }
     }
 
+    private void OnPlayerDied()
+    {
+        if (state == WaveState.Idle)
+        {
+            return;
+        }
+
+        StopSequence();
+        SurvivalEnded?.Invoke();
+        Debug.Log("プレイヤー死亡によりウェーブ進行を終了");
+    }
+
     /// <summary>
     /// 敵のイベント登録解除
     /// </summary>
@@ -371,8 +397,7 @@ public sealed class WaveController : MonoBehaviour
     {
         Idle,
         Running,
-        Intermission,
-        Completed
+        Intermission
     }
 
     /// <summary>
