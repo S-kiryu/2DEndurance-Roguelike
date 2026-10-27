@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32d538a998e7462f8793672a0fbb3bd4, type: 3}
+  m_Name: PrototypeWeapon
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponAcquireSkill
+  displayName: "銃を追加"
+  description: "仮の銃を1つ追加装備する。同じ銃も追加可能。"
+  icon: {fileID: 0}
+  weaponData: {fileID: 11400000, guid: b7c4151090122134da3fa463823f1583, type: 2}

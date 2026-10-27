@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 396dd3a6991ee7e42be200e9421328fd, type: 3}
   m_Name: NewWaveSequence
   m_EditorClassIdentifier: Assembly-CSharp::WaveSequenceData
-  waveDuration: 30
+  waveDuration: 10
   intervalBetweenWaves: 5
+  multiplierPerLoop: 1.2
   waves:
   - enemies:
     - enemyPrefab: {fileID: 8037015100712895834, guid: 6fff6a1ed71088a459f366288d8e2458, type: 3}
