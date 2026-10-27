@@ -13,13 +13,25 @@ public abstract class Weapon : MonoBehaviour
     protected WeaponData Data => data;
     protected WeaponStats Stats => data.Stats;
 
+    public WeaponData WeaponData => data;
+    public string DisplayName => data != null ? data.Stats.WeaponName : name;
+    public int DebugRarityLevel { get; private set; }
+
+    /// <summary>正式なレアリティ実装までの仮状態。戦闘性能には影響しない。</summary>
+    public void UpgradeDebugRarity()
+    {
+        int previousLevel = DebugRarityLevel;
+        DebugRarityLevel++;
+        Debug.Log($"[仮レアリティ] {DisplayName}: +{previousLevel} → +{DebugRarityLevel}（性能変更なし）", this);
+    }
+
     /// <summary>
     /// クールタイムが経過したかどうかを確認し、攻撃可能であれば攻撃を行う
     /// </summary>
     /// <param name="deltaTime"></param>
     public void Tick(float deltaTime)
     {
-        if (data == null)
+        if (data == null || deltaTime <= 0f)
         {
             return;
         }

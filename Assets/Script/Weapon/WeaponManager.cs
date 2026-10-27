@@ -18,6 +18,8 @@ public class WeaponManager : MonoBehaviour
     [SerializeField]
     private List<WeaponData> startingWeapons = new();
 
+    public IReadOnlyList<Weapon> Weapons => weapons;
+
     private void Awake()
     {
         if (weaponMount == null)

@@ -8,6 +8,8 @@ public sealed class PlayerPresenter : MonoBehaviour, IDamageable
 {
     public event Action PlayerDied;
 
+    public PlayerModel Model => _model;
+
     [SerializeField]
     private PlayerView _view;
 
@@ -84,6 +86,17 @@ public sealed class PlayerPresenter : MonoBehaviour, IDamageable
     public void Heal(int amount)
     {
         _model.Heal(amount);
+    }
+
+    public bool ApplyEnhancement(int additionalMaxHealth, float additionalMoveSpeed)
+    {
+        if (!_model.ApplyEnhancement(additionalMaxHealth, additionalMoveSpeed))
+        {
+            return false;
+        }
+
+        Debug.Log($"自己強化: HP {_model.CurrentHealth}/{_model.MaxHealth}, 移動速度 {_model.MoveSpeed}", this);
+        return true;
     }
 
     private void OnPlayerDied()
