@@ -107,6 +107,11 @@ public sealed class WaveController : MonoBehaviour
 
     private void Update()
     {
+        if (Time.timeScale <= 0f || Time.deltaTime <= 0f)
+        {
+            return;
+        }
+
         switch (state)
         {
             case WaveState.Running:
@@ -331,21 +336,15 @@ public sealed class WaveController : MonoBehaviour
 
         spawnPlans.Clear();
 
-        WaveEnded?.Invoke(CurrentWaveNumber);
-        Debug.Log($"Wave {CurrentWaveNumber} 終了");
-
+        int finishedWaveNumber = CurrentWaveNumber;
         waveIndex++;
 
         intervalRemainingTime =
             sequenceData.IntervalBetweenWaves;
 
-        if (intervalRemainingTime <= 0f)
-        {
-            BeginWave();
-            return;
-        }
-
         state = WaveState.Intermission;
+        WaveEnded?.Invoke(finishedWaveNumber);
+        Debug.Log($"Wave {finishedWaveNumber} 終了");
     }
 
     /// <summary>

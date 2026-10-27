@@ -9,10 +9,10 @@ public sealed class PlayerModel
 {
     public event Action Died;
 
-    public int MaxHealth => _maxHealth;
+    public int MaxHealth => _maxHealth + maxHealthBonus;
     public int CurrentHealth { get; private set; }
 
-    public float MoveSpeed => _moveSpeed;
+    public float MoveSpeed => _moveSpeed + moveSpeedBonus;
     public float JumpSpeed => _jumpPower;
     public float InvincibilityTime => _invincibilityTime;
 
@@ -32,9 +32,14 @@ public sealed class PlayerModel
     [SerializeField, Min(0.01f)]
     private float _invincibilityTime = 1f;
 
+    private int maxHealthBonus;
+    private float moveSpeedBonus;
+
     public void Initialize()
     {
-        CurrentHealth = _maxHealth;
+        maxHealthBonus = 0;
+        moveSpeedBonus = 0f;
+        CurrentHealth = MaxHealth;
         IsInvincible = false;
     }
 
@@ -65,8 +70,22 @@ public sealed class PlayerModel
 
         CurrentHealth = Mathf.Min(
             CurrentHealth + amount,
-            _maxHealth
+            MaxHealth
         );
+    }
+
+    /// <summary>このラン中だけ累積する自己強化。最大HPの増加分だけ現在HPも回復する。</summary>
+    public bool ApplyEnhancement(int additionalMaxHealth, float additionalMoveSpeed)
+    {
+        if (!IsAlive || additionalMaxHealth < 0 || additionalMoveSpeed < 0f)
+        {
+            return false;
+        }
+
+        maxHealthBonus += additionalMaxHealth;
+        moveSpeedBonus += additionalMoveSpeed;
+        Heal(additionalMaxHealth);
+        return true;
     }
 
     public void SetInvincible(bool isInvincible)

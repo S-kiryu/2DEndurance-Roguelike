@@ -9,6 +9,12 @@ public sealed class PlayerInputReader : MonoBehaviour
     /// <summary>ジャンプ入力を消費する</summary>
     public bool ConsumeJump()
     {
+        if (Time.timeScale <= 0f)
+        {
+            jumpRequested = false;
+            return false;
+        }
+
         if (!jumpRequested)
         {
             return false;
@@ -136,6 +142,11 @@ public sealed class PlayerInputReader : MonoBehaviour
 
     private void OnJump(InputAction.CallbackContext context)
     {
-        jumpRequested = true;
+        jumpRequested = Time.timeScale > 0f;
+    }
+
+    public void ClearJumpRequest()
+    {
+        jumpRequested = false;
     }
 }
