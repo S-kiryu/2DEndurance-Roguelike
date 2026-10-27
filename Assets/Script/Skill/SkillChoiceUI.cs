@@ -2,7 +2,9 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>1つの選択肢。プレハブ内の参照は複製先にも引き継がれる。</summary>
+/// <summary>
+/// 選択肢
+/// </summary>
 public sealed class SkillChoiceUI : MonoBehaviour
 {
     [SerializeField] private Button button;
@@ -33,6 +35,12 @@ public sealed class SkillChoiceUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// カテゴリーによって名前を変える
+    /// </summary>
+    /// <param name="skill"></param>
+    /// <param name="index"></param>
+    /// <param name="selectionHandler"></param>
     public void Bind(SkillBase skill, int index, Action<int> selectionHandler)
     {
         choiceIndex = index;
@@ -46,7 +54,7 @@ public sealed class SkillChoiceUI : MonoBehaviour
             {
                 SkillCategory.Weapon => "武器",
                 SkillCategory.SelfEnhancement => "自己強化",
-                _ => "レアリティ強化（仮）"
+                _ => "レアリティ強化"
             };
         }
         if (iconImage != null)

@@ -62,7 +62,7 @@ public sealed class SkillSelectionUI : MonoBehaviour
 
     private void Show()
     {
-        // シーンにある生成先へ、候補数に応じてChoice1プレハブだけを生成・再利用する。
+        // シーンにある生成先へ、候補数に応じてプレハブを生成
         while (choices.Count < selection.CurrentChoices.Count)
         {
             choices.Add(Instantiate(choicePrefab, choicesRoot));

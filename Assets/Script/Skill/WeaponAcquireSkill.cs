@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// 指定した武器を生成するスキル
+/// </summary>
 [CreateAssetMenu(fileName = "NewWeaponSkill", menuName = "Skill/Weapon Acquisition")]
 public sealed class WeaponAcquireSkill : SkillBase
 {

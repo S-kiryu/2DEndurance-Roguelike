@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// 自身を強化するスキル
+/// </summary>
 [CreateAssetMenu(fileName = "NewSelfEnhancementSkill", menuName = "Skill/Self Enhancement")]
 public sealed class SelfEnhancementSkill : SkillBase
 {
