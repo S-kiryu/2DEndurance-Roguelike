@@ -6,9 +6,14 @@ using UnityEngine;
 public sealed class EnemySpawner : MonoBehaviour
 {
     [SerializeField]
+    private GameObjectPool objectPool;
+
+    [SerializeField]
     private Transform[] spawnPoints;
     [SerializeField]
     private GameObject player;
+
+    public bool IsReady => objectPool != null && objectPool.IsReady;
 
     /// <summary>
     /// 敵のスポーン処理
@@ -17,19 +22,30 @@ public sealed class EnemySpawner : MonoBehaviour
     /// <returns></returns>
     public WaveEnemyHandle Spawn(GameObject enemyPrefab)
     {
-        if (enemyPrefab == null)
+        if (!IsReady)
         {
-            Debug.LogWarning("敵Prefabが設定されていません。");
+            Debug.LogError("EnemySpawnerに、シーン上の設定済みGameObjectPoolを指定してください。", this);
+            return null;
+        }
+
+        if (enemyPrefab == null || !enemyPrefab.TryGetComponent<WaveEnemyHandle>(out _))
+        {
+            Debug.LogError("敵PrefabのルートにWaveEnemyHandleを事前に設定してください。", this);
             return null;
         }
 
         Transform spawnPoint = GetRandomSpawnPoint();
 
-        GameObject enemy = Instantiate(
+        GameObject enemy = objectPool.Spawn(
             enemyPrefab,
             spawnPoint.position,
             spawnPoint.rotation
         );
+
+        if (enemy == null)
+        {
+            return null;
+        }
 
         EnemyBase enemyBase = enemy.GetComponent<EnemyBase>();
 
@@ -40,11 +56,6 @@ public sealed class EnemySpawner : MonoBehaviour
 
         WaveEnemyHandle handle =
             enemy.GetComponent<WaveEnemyHandle>();
-
-        if (handle == null)
-        {
-            handle = enemy.AddComponent<WaveEnemyHandle>();
-        }
 
         return handle;
     }

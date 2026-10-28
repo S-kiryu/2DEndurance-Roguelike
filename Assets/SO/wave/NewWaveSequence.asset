@@ -12,10 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 396dd3a6991ee7e42be200e9421328fd, type: 3}
   m_Name: NewWaveSequence
   m_EditorClassIdentifier: Assembly-CSharp::WaveSequenceData
+  enemyCatalog: {fileID: 11400000, guid: a616321fc38823b9bec19e45b2a62e30, type: 2}
   waveDuration: 10
-  intervalBetweenWaves: 5
-  multiplierPerLoop: 1.2
+  intervalBetweenWaves: 0
+  spawnTiming: 0
   waves:
   - enemies:
-    - enemyPrefab: {fileID: 8037015100712895834, guid: 6fff6a1ed71088a459f366288d8e2458, type: 3}
+    - enemyId: "\u30C6\u30B9\u30C8\u7528\u306E\u6575"
       count: 10
+  endlessGrowth:
+  - enemyId: "\u30C6\u30B9\u30C8\u7528\u306E\u6575"
+    increaseCount: 100
+    increaseEveryWaves: 1
