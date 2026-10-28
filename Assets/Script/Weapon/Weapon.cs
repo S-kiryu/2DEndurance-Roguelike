@@ -8,6 +8,10 @@ public abstract class Weapon : MonoBehaviour
     [SerializeField]
     private WeaponData data;
 
+    [Header("武器固有の攻撃強化")]
+    [Tooltip("0.2で武器の攻撃倍率+20%。プレイヤー側の倍率とは掛け合わせます。")]
+    [SerializeField, Min(0f)] private float damageMultiplierBonus;
+
     private float cooldownRemaining;
 
     protected WeaponData Data => data;
@@ -16,6 +20,22 @@ public abstract class Weapon : MonoBehaviour
     public WeaponData WeaponData => data;
     public string DisplayName => data != null ? data.Stats.WeaponName : name;
     public int DebugRarityLevel { get; private set; }
+
+    public PlayerModel OwnerStats { get; private set; }
+    public float WeaponDamageMultiplier => 1f + damageMultiplierBonus;
+    public float EffectiveDamageMultiplier => WeaponDamageMultiplier * (OwnerStats?.AttackMultiplier ?? 1f);
+    public float EffectiveAttackInterval => Stats.AttackInterval / (OwnerStats?.AttackSpeedMultiplier ?? 1f);
+    public float EffectiveCriticalRate => Mathf.Clamp01(Stats.CriticalRate + (OwnerStats?.CriticalRateBonus ?? 0f));
+
+    public bool AddDamageMultiplierBonus(float additionalMultiplier)
+    {
+        if (additionalMultiplier <= 0f)
+        {
+            return false;
+        }
+        damageMultiplierBonus += additionalMultiplier;
+        return true;
+    }
 
     /// <summary>正式なレアリティ実装までの仮状態。戦闘性能には影響しない。</summary>
     public void UpgradeDebugRarity()
@@ -36,7 +56,9 @@ public abstract class Weapon : MonoBehaviour
             return;
         }
 
-        cooldownRemaining = Mathf.Max(cooldownRemaining - deltaTime, 0f);
+        // 基準の攻撃間隔を現在の攻撃速度で消費し、待機中の強化も直ちに反映する。
+        float attackSpeedMultiplier = OwnerStats?.AttackSpeedMultiplier ?? 1f;
+        cooldownRemaining = Mathf.Max(cooldownRemaining - deltaTime * attackSpeedMultiplier, 0f);
 
         if (cooldownRemaining <= 0f && TryAttack())
         {
@@ -44,7 +66,7 @@ public abstract class Weapon : MonoBehaviour
         }
     }
 
-    public bool Initialize(WeaponData weaponData = null)
+    public bool Initialize(WeaponData weaponData = null, PlayerModel ownerStats = null)
     {
         if (weaponData != null)
         {
@@ -66,6 +88,7 @@ public abstract class Weapon : MonoBehaviour
             return false;
         }
 
+        OwnerStats = ownerStats;
         cooldownRemaining = 0f;
         OnInitialized();
         return true;
@@ -96,9 +119,10 @@ public abstract class Weapon : MonoBehaviour
     /// <returns></returns>
     protected int CalculateDamage()
     {
-        bool isCritical = Random.value < Stats.CriticalRate;
+        float criticalRate = EffectiveCriticalRate;
+        bool isCritical = criticalRate >= 1f || Random.value < criticalRate;
         float multiplier = isCritical ? Stats.CriticalMultiplier : 1f;
-        return Mathf.Max(1, Mathf.RoundToInt(Stats.Damage * multiplier));
+        return Mathf.Max(1, Mathf.RoundToInt(Stats.Damage * EffectiveDamageMultiplier * multiplier));
     }
 
     protected virtual void OnInitialized()

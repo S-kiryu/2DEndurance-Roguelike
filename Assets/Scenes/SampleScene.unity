@@ -148,12 +148,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3c3adcc079b7624085063c16e831270, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponManager
+  player: {fileID: 1067432070}
   weaponMount: {fileID: 1563832792}
   weapons:
   - {fileID: 0}
   startingWeapons:
   - {fileID: 11400000, guid: bef4502aeff3689408ec9dca1d2b40e6, type: 2}
-  - {fileID: 11400000, guid: b7c4151090122134da3fa463823f1583, type: 2}
+  - {fileID: 0}
 --- !u!4 &21284535
 Transform:
   m_ObjectHideFlags: 0
@@ -532,7 +533,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "クリックで選択"
+  m_Text: "\u30AF\u30EA\u30C3\u30AF\u3067\u9078\u629E"
 --- !u!1 &250007000
 GameObject:
   m_ObjectHideFlags: 0
@@ -1479,6 +1480,9 @@ MonoBehaviour:
     _moveSpeed: 5
     _jumpPower: 8
     _invincibilityTime: 1
+    _attackMultiplier: 1
+    _attackSpeedMultiplier: 1
+    _criticalRateBonus: 0
 --- !u!1 &1103647369
 GameObject:
   m_ObjectHideFlags: 0

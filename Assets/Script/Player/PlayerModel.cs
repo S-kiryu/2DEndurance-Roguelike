@@ -16,6 +16,11 @@ public sealed class PlayerModel
     public float JumpSpeed => _jumpPower;
     public float InvincibilityTime => _invincibilityTime;
 
+    // 同種の強化は加算する。例: 1 + 0.2 + 0.2 = 1.4倍。
+    public float AttackMultiplier => _attackMultiplier + attackMultiplierBonus;
+    public float AttackSpeedMultiplier => _attackSpeedMultiplier + attackSpeedMultiplierBonus;
+    public float CriticalRateBonus => _criticalRateBonus + criticalRateBonus;
+
     public bool IsAlive => CurrentHealth > 0;
     public bool IsInvincible { get; private set; }
 
@@ -32,13 +37,29 @@ public sealed class PlayerModel
     [SerializeField, Min(0.01f)]
     private float _invincibilityTime = 1f;
 
+    [Header("基礎戦闘ステータス")]
+    [SerializeField, Min(0f)]
+    private float _attackMultiplier = 1f;
+
+    [SerializeField, Min(0.01f)]
+    private float _attackSpeedMultiplier = 1f;
+
+    [SerializeField, Min(0f)]
+    private float _criticalRateBonus;
+
     private int maxHealthBonus;
     private float moveSpeedBonus;
+    private float attackMultiplierBonus;
+    private float attackSpeedMultiplierBonus;
+    private float criticalRateBonus;
 
     public void Initialize()
     {
         maxHealthBonus = 0;
         moveSpeedBonus = 0f;
+        attackMultiplierBonus = 0f;
+        attackSpeedMultiplierBonus = 0f;
+        criticalRateBonus = 0f;
         CurrentHealth = MaxHealth;
         IsInvincible = false;
     }
@@ -75,15 +96,24 @@ public sealed class PlayerModel
     }
 
     /// <summary>このラン中だけ累積する自己強化。最大HPの増加分だけ現在HPも回復する。</summary>
-    public bool ApplyEnhancement(int additionalMaxHealth, float additionalMoveSpeed)
+    public bool ApplyEnhancement(
+        int additionalMaxHealth,
+        float additionalMoveSpeed,
+        float additionalAttackMultiplier = 0f,
+        float additionalAttackSpeedMultiplier = 0f,
+        float additionalCriticalRate = 0f)
     {
-        if (!IsAlive || additionalMaxHealth < 0 || additionalMoveSpeed < 0f)
+        if (!IsAlive || additionalMaxHealth < 0 || additionalMoveSpeed < 0f ||
+            additionalAttackMultiplier < 0f || additionalAttackSpeedMultiplier < 0f || additionalCriticalRate < 0f)
         {
             return false;
         }
 
         maxHealthBonus += additionalMaxHealth;
         moveSpeedBonus += additionalMoveSpeed;
+        attackMultiplierBonus += additionalAttackMultiplier;
+        attackSpeedMultiplierBonus += additionalAttackSpeedMultiplier;
+        criticalRateBonus += additionalCriticalRate;
         Heal(additionalMaxHealth);
         return true;
     }

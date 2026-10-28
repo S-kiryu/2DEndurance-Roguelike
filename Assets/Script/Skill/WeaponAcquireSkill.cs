@@ -13,7 +13,7 @@ public sealed class WeaponAcquireSkill : SkillBase
     public override bool CanApply(SkillContext context)
     {
         return context != null && context.Weapons != null &&
-            weaponData != null && weaponData.WeaponPrefab != null;
+            weaponData != null && weaponData.WeaponPrefab != null && !context.Weapons.HasWeapon(weaponData);
     }
 
     public override bool TryApply(SkillContext context)
@@ -23,7 +23,6 @@ public sealed class WeaponAcquireSkill : SkillBase
             return false;
         }
 
-        // 仮仕様では同じ武器も別インスタンスとして追加できる。
         Weapon weapon = context.Weapons.EquipWeapon(weaponData);
         if (weapon == null)
         {

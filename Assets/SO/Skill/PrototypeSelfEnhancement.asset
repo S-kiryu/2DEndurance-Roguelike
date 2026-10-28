@@ -17,3 +17,6 @@ MonoBehaviour:
   icon: {fileID: 0}
   additionalMaxHealth: 20
   additionalMoveSpeed: 1
+  additionalAttackMultiplier: 0
+  additionalAttackSpeedMultiplier: 0
+  additionalCriticalRate: 0

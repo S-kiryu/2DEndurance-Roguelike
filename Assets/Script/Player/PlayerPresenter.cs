@@ -88,14 +88,23 @@ public sealed class PlayerPresenter : MonoBehaviour, IDamageable
         _model.Heal(amount);
     }
 
-    public bool ApplyEnhancement(int additionalMaxHealth, float additionalMoveSpeed)
+    public bool ApplyEnhancement(
+        int additionalMaxHealth,
+        float additionalMoveSpeed,
+        float additionalAttackMultiplier = 0f,
+        float additionalAttackSpeedMultiplier = 0f,
+        float additionalCriticalRate = 0f)
     {
-        if (!_model.ApplyEnhancement(additionalMaxHealth, additionalMoveSpeed))
+        if (!_model.ApplyEnhancement(additionalMaxHealth, additionalMoveSpeed,
+            additionalAttackMultiplier, additionalAttackSpeedMultiplier, additionalCriticalRate))
         {
             return false;
         }
 
-        Debug.Log($"自己強化: HP {_model.CurrentHealth}/{_model.MaxHealth}, 移動速度 {_model.MoveSpeed}", this);
+        Debug.Log(
+            $"自己強化: HP {_model.CurrentHealth}/{_model.MaxHealth}, 移動速度 {_model.MoveSpeed}, " +
+            $"攻撃 {_model.AttackMultiplier:F2}倍, 攻撃速度 {_model.AttackSpeedMultiplier:F2}倍, " +
+            $"クリティカル率加算 {_model.CriticalRateBonus:P0}", this);
         return true;
     }
 
