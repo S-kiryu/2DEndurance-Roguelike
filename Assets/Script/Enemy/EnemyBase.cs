@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 敵のベースクラス
 /// </summary>
-public abstract class EnemyBase : MonoBehaviour, IDamageable
+public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
 {
     [SerializeField] private EnemyStatusData statusData;
 
@@ -47,6 +47,19 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable
         }
     }
 
+    public virtual void OnPoolSpawned()
+    {
+        CurrentHP = statusData != null ? statusData.MaxHP : 0;
+        playerDamageable = null;
+    }
+
+    public virtual void OnPoolDespawned()
+    {
+        playerDamageable = null;
+        CancelInvoke();
+        StopAllCoroutines();
+    }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         TryDealContactDamage(collision.collider);
@@ -76,7 +89,7 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable
 
     public virtual void TakeDamage(int amount)
     {
-        if (amount <= 0 || CurrentHP <= 0)
+        if (!isActiveAndEnabled || amount <= 0 || CurrentHP <= 0)
         {
             return;
         }
@@ -91,6 +104,6 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable
 
     protected virtual void Die()
     {
-        Destroy(gameObject);
+        GameObjectPool.Despawn(gameObject);
     }
 }

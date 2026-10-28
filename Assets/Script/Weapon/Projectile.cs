@@ -5,9 +5,9 @@ using UnityEngine;
 /// 弾のクラス
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D))]
-public sealed class Projectile : MonoBehaviour
+public sealed class Projectile : MonoBehaviour, IPoolable
 {
-    private readonly HashSet<IDamageable> damagedTargets = new();
+    private readonly HashSet<(IDamageable Target, int SpawnVersion)> damagedTargets = new();
     private Rigidbody2D body;
     private Camera mainCamera;
     private int damage;
@@ -21,6 +21,24 @@ public sealed class Projectile : MonoBehaviour
         body.gravityScale = 0f;
         body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         GetComponent<BoxCollider2D>().isTrigger = true;
+    }
+
+    public void OnPoolSpawned()
+    {
+        // 初回貸出はAwake前の場合がある。
+        body = GetComponent<Rigidbody2D>();
+        damagedTargets.Clear();
+        damage = 0;
+        remainingPenetrations = 0;
+        owner = null;
+    }
+
+    public void OnPoolDespawned()
+    {
+        damagedTargets.Clear();
+        owner = null;
+        body.linearVelocity = Vector2.zero;
+        body.angularVelocity = 0f;
     }
 
     private void LateUpdate()
@@ -44,7 +62,7 @@ public sealed class Projectile : MonoBehaviour
             viewportPosition.z < mainCamera.nearClipPlane ||
             viewportPosition.z > mainCamera.farClipPlane)
         {
-            Destroy(gameObject);
+            GameObjectPool.Despawn(gameObject);
         }
     }
 
@@ -63,6 +81,11 @@ public sealed class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (!isActiveAndEnabled)
+        {
+            return;
+        }
+
         if (owner != null && other.transform.root.gameObject == owner)
         {
             return;
@@ -70,7 +93,14 @@ public sealed class Projectile : MonoBehaviour
 
         IDamageable target = other.GetComponentInParent<IDamageable>();
 
-        if (target == null || !damagedTargets.Add(target))
+        if (target == null)
+        {
+            return;
+        }
+
+        PooledObject pooledTarget = other.GetComponentInParent<PooledObject>();
+        int spawnVersion = pooledTarget != null ? pooledTarget.SpawnVersion : 0;
+        if (!damagedTargets.Add((target, spawnVersion)))
         {
             return;
         }
@@ -79,7 +109,7 @@ public sealed class Projectile : MonoBehaviour
 
         if (remainingPenetrations <= 0)
         {
-            Destroy(gameObject);
+            GameObjectPool.Despawn(gameObject);
             return;
         }
 

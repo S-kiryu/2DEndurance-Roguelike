@@ -18,12 +18,23 @@ public sealed class EnemyMove : MonoBehaviour
     {
         if (playerObject == null)
         {
+            player = null;
             Debug.LogWarning($"{name}: Playerが設定されていません。");
             return;
         }
 
         player = playerObject.transform;
         moveSpeed = speed;
+    }
+
+    private void OnDisable()
+    {
+        player = null;
+        if (body != null)
+        {
+            StopMoving();
+            body.angularVelocity = 0f;
+        }
     }
 
     private void FixedUpdate()

@@ -16,6 +16,8 @@ public abstract class Weapon : MonoBehaviour
 
     protected WeaponData Data => data;
     protected WeaponStats Stats => data.Stats;
+    protected GameObjectPool ObjectPool { get; private set; }
+    protected virtual bool RequiresPool => false;
 
     public WeaponData WeaponData => data;
     public string DisplayName => data != null ? data.Stats.WeaponName : name;
@@ -66,7 +68,7 @@ public abstract class Weapon : MonoBehaviour
         }
     }
 
-    public bool Initialize(WeaponData weaponData = null, PlayerModel ownerStats = null)
+    public bool Initialize(WeaponData weaponData = null, PlayerModel ownerStats = null, GameObjectPool objectPool = null)
     {
         if (weaponData != null)
         {
@@ -88,6 +90,13 @@ public abstract class Weapon : MonoBehaviour
             return false;
         }
 
+        if (RequiresPool && objectPool == null)
+        {
+            Debug.LogError($"{name}: WeaponManagerにシーン上のGameObjectPoolを設定してください。", this);
+            return false;
+        }
+
+        ObjectPool = objectPool;
         OwnerStats = ownerStats;
         cooldownRemaining = 0f;
         OnInitialized();

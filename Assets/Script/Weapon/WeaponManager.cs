@@ -6,6 +6,9 @@ using UnityEngine;
 /// </summary>
 public class WeaponManager : MonoBehaviour
 {
+    [Header("シーン上の共通プール")]
+    [SerializeField] private GameObjectPool objectPool;
+
     [Header("武器の所有者")]
     [SerializeField] private PlayerPresenter player;
 
@@ -177,7 +180,7 @@ public class WeaponManager : MonoBehaviour
     {
         weapon.Equip(weaponMount);
 
-        if (weapon.Initialize(weaponData, player != null ? player.Model : null))
+        if (weapon.Initialize(weaponData, player != null ? player.Model : null, objectPool))
             return true;
 
         weapon.Unequip();

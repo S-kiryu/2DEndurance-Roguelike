@@ -10,6 +10,8 @@ public class Gun : Weapon
 
     private GunData gunData;
 
+    protected override bool RequiresPool => true;
+
     protected override bool IsCompatibleData(WeaponData weaponData)
     {
         return weaponData is GunData;
@@ -22,7 +24,7 @@ public class Gun : Weapon
 
     protected override bool TryAttack()
     {
-        if (gunData.ProjectilePrefab == null)
+        if (gunData.ProjectilePrefab == null || ObjectPool == null || !ObjectPool.IsReady)
         {
             return false;
         }
@@ -32,11 +34,16 @@ public class Gun : Weapon
             ? -spawnPoint.right
             : spawnPoint.right;
 
-        Projectile projectile = Instantiate(
+        Projectile projectile = ObjectPool.Spawn(
             gunData.ProjectilePrefab,
             spawnPoint.position,
             Quaternion.FromToRotation(Vector3.right, direction)
         );
+
+        if (projectile == null)
+        {
+            return false;
+        }
 
         projectile.Initialize(
             direction,
