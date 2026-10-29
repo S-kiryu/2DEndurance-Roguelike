@@ -13,7 +13,13 @@ public sealed class WeaponAcquireSkill : SkillBase
     public override bool CanApply(SkillContext context)
     {
         return context != null && context.Weapons != null &&
-            weaponData != null && weaponData.WeaponPrefab != null && !context.Weapons.HasWeapon(weaponData);
+            context.Weapons.HasCapacity && weaponData != null && weaponData.WeaponPrefab != null &&
+            !context.Weapons.HasWeapon(weaponData);
+    }
+
+    public override string GetSelectionIdentity(SkillContext context)
+    {
+        return $"weapon-acquire:{(weaponData != null ? weaponData.GetEntityId().ToString() : "none")}";
     }
 
     public override bool TryApply(SkillContext context)

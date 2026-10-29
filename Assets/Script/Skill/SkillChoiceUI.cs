@@ -41,26 +41,26 @@ public sealed class SkillChoiceUI : MonoBehaviour
     /// <param name="skill"></param>
     /// <param name="index"></param>
     /// <param name="selectionHandler"></param>
-    public void Bind(SkillBase skill, int index, Action<int> selectionHandler)
+    public void Bind(SkillCandidate candidate, int index, Action<int> selectionHandler)
     {
         choiceIndex = index;
         onSelected = selectionHandler;
-        nameText.text = skill.DisplayName;
-        descriptionText.text = skill.Description;
+        nameText.text = candidate.DisplayName;
+        descriptionText.text = candidate.Description;
 
         if (categoryText != null)
         {
-            categoryText.text = skill.Category switch
+            categoryText.text = candidate.Category switch
             {
                 SkillCategory.Weapon => "武器",
                 SkillCategory.SelfEnhancement => "自己強化",
-                _ => "レアリティ強化"
+                _ => "武器強化"
             };
         }
         if (iconImage != null)
         {
-            iconImage.sprite = skill.Icon;
-            iconImage.enabled = skill.Icon != null;
+            iconImage.sprite = candidate.Icon;
+            iconImage.enabled = candidate.Icon != null;
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Globalization;
 using UnityEngine;
 
 /// <summary>
@@ -33,5 +34,17 @@ public sealed class SelfEnhancementSkill : SkillBase
         return CanApply(context) &&
             context.Player.ApplyEnhancement(additionalMaxHealth, additionalMoveSpeed,
                 additionalAttackMultiplier, additionalAttackSpeedMultiplier, additionalCriticalRate);
+    }
+
+    public override string GetSelectionIdentity(SkillContext context)
+    {
+        CultureInfo culture = CultureInfo.InvariantCulture;
+        return string.Join("|",
+            "self-enhancement",
+            additionalMaxHealth.ToString(culture),
+            additionalMoveSpeed.ToString("R", culture),
+            additionalAttackMultiplier.ToString("R", culture),
+            additionalAttackSpeedMultiplier.ToString("R", culture),
+            additionalCriticalRate.ToString("R", culture));
     }
 }

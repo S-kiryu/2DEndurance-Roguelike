@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>候補から重複なしで最大3つを抽選する</summary>
+/// <summary>適用先まで確定した候補から、重複設定に従って最大3つを抽選する。</summary>
 public sealed class SkillSelectionManager : MonoBehaviour
 {
     public const int ChoiceCount = 3;
@@ -15,7 +15,9 @@ public sealed class SkillSelectionManager : MonoBehaviour
     [Header("シーンのCanvas上にある選択UI")]
     [SerializeField] private SkillSelectionUI selectionUI;
 
-    private readonly List<SkillBase> currentChoices = new();
+    private readonly List<SkillCandidate> currentChoices = new();
+    private readonly List<SkillCandidate> availableCandidates = new();
+    private readonly HashSet<string> candidateKeys = new();
     private SkillContext context;
     private PlayerInputReader playerInput;
     private float previousTimeScale;
@@ -41,7 +43,7 @@ public sealed class SkillSelectionManager : MonoBehaviour
     public event Action ChoicesClosed;
 
     public bool IsChoosing { get; private set; }
-    public IReadOnlyList<SkillBase> CurrentChoices => currentChoices;
+    public IReadOnlyList<SkillCandidate> CurrentChoices => currentChoices;
 
     private void Awake()
     {
@@ -94,27 +96,40 @@ public sealed class SkillSelectionManager : MonoBehaviour
         }
 
         currentChoices.Clear();
+        availableCandidates.Clear();
+        candidateKeys.Clear();
+
         foreach (SkillBase skill in skillPool)
         {
-            if (skill != null && !currentChoices.Contains(skill) && skill.CanApply(context))
+            if (skill == null)
             {
-                currentChoices.Add(skill);
+                continue;
+            }
+
+            var generated = new List<SkillCandidate>();
+            skill.BuildCandidates(context, generated);
+            foreach (SkillCandidate candidate in generated)
+            {
+                if (candidate == null || string.IsNullOrWhiteSpace(candidate.IdentityKey) ||
+                    !candidateKeys.Add(candidate.IdentityKey))
+                {
+                    continue;
+                }
+
+                availableCandidates.Add(candidate);
             }
         }
 
-        // 部分Fisher-Yates。候補数が増えても均等に、同じスキルを重複させず抽選する。
-        int choiceCount = Mathf.Min(ChoiceCount, currentChoices.Count);
-        for (int i = 0; i < choiceCount; i++)
+        for (int i = 0; i < ChoiceCount && availableCandidates.Count > 0; i++)
         {
-            int randomIndex = UnityEngine.Random.Range(i, currentChoices.Count);
-            SkillBase temporary = currentChoices[i];
-            currentChoices[i] = currentChoices[randomIndex];
-            currentChoices[randomIndex] = temporary;
-        }
+            int randomIndex = UnityEngine.Random.Range(0, availableCandidates.Count);
+            SkillCandidate selected = availableCandidates[randomIndex];
+            currentChoices.Add(selected);
 
-        if (currentChoices.Count > choiceCount)
-        {
-            currentChoices.RemoveRange(choiceCount, currentChoices.Count - choiceCount);
+            if (!selected.AllowDuplicateInSameSelection)
+            {
+                availableCandidates.RemoveAt(randomIndex);
+            }
         }
 
         if (currentChoices.Count == 0)
@@ -139,7 +154,7 @@ public sealed class SkillSelectionManager : MonoBehaviour
             return false;
         }
 
-        SkillBase selected = currentChoices[index];
+        SkillCandidate selected = currentChoices[index];
         if (selected == null || !selected.TryApply(context))
         {
             Debug.LogWarning("スキルを適用できませんでした。別の候補を選んでください。", this);
@@ -147,7 +162,7 @@ public sealed class SkillSelectionManager : MonoBehaviour
         }
 
         CancelSelection();
-        SkillSelected?.Invoke(selected);
+        SkillSelected?.Invoke(selected.Skill);
         return true;
     }
 
@@ -161,7 +176,8 @@ public sealed class SkillSelectionManager : MonoBehaviour
         IsChoosing = false;
         currentChoices.Clear();
         playerInput?.ClearJumpRequest();
-        Time.timeScale = previousTimeScale;
+        bool playerIsDead = player != null && !player.Model.IsAlive;
+        Time.timeScale = playerIsDead ? 0f : previousTimeScale;
         ChoicesClosed?.Invoke();
     }
 }
