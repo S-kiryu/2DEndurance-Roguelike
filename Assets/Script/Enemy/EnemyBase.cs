@@ -8,11 +8,14 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
     [SerializeField] private EnemyStatusData statusData;
 
     private IDamageable playerDamageable;
+    private int currentMaxHP;
+    private int currentDamage;
 
     public int CurrentHP { get; private set; }
+    public int CurrentMaxHP => currentMaxHP;
 
-    public int Damage => statusData.Damage;
-    public float Speed => statusData.Speed;
+    public int Damage => currentDamage;
+    public float Speed => statusData != null ? statusData.Speed : 0f;
 
     protected virtual void Awake()
     {
@@ -27,10 +30,15 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
             return;
         }
 
-        CurrentHP = statusData.MaxHP;
+        ResetCombatStats();
     }
 
     public virtual void Initialize(GameObject player)
+    {
+        Initialize(player, EnemyStatScale.Default);
+    }
+
+    public virtual void Initialize(GameObject player, EnemyStatScale statScale)
     {
         playerDamageable = player != null
             ? player.GetComponentInParent<IDamageable>()
@@ -41,6 +49,10 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
             return;
         }
 
+        currentMaxHP = statScale.ScaleHealth(statusData.MaxHP);
+        currentDamage = statScale.ScaleDamage(statusData.Damage);
+        CurrentHP = currentMaxHP;
+
         if (TryGetComponent(out EnemyMove enemyMove))
         {
             enemyMove.Initialize(player, statusData.Speed);
@@ -49,7 +61,7 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
 
     public virtual void OnPoolSpawned()
     {
-        CurrentHP = statusData != null ? statusData.MaxHP : 0;
+        ResetCombatStats();
         playerDamageable = null;
     }
 
@@ -68,6 +80,16 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
     private void OnCollisionStay2D(Collision2D collision)
     {
         TryDealContactDamage(collision.collider);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        TryDealContactDamage(other);
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        TryDealContactDamage(other);
     }
 
     private void TryDealContactDamage(Collider2D other)
@@ -105,5 +127,12 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
     protected virtual void Die()
     {
         GameObjectPool.Despawn(gameObject);
+    }
+
+    private void ResetCombatStats()
+    {
+        currentMaxHP = statusData != null ? Mathf.Max(1, statusData.MaxHP) : 0;
+        currentDamage = statusData != null ? Mathf.Max(0, statusData.Damage) : 0;
+        CurrentHP = currentMaxHP;
     }
 }
