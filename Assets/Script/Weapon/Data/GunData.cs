@@ -20,10 +20,20 @@ public class GunData : WeaponData
     [SerializeField, Min(0)]
     private int penetrationCount;
 
+    [Header("星5固有効果")]
+    [SerializeField, Min(1)]
+    private int star5AdditionalProjectiles = 2;
+
+    [Tooltip("追加弾を含む全弾の端から端までの角度")]
+    [SerializeField, Range(0f, 90f)]
+    private float star5SpreadAngle = 12f;
+
     public Projectile ProjectilePrefab => projectilePrefab;
     public float ProjectileSpeed => projectileSpeed;
     /// <summary>
     /// 貫通回数
     /// </summary>
-    public int PenetrationCount => penetrationCount;
+    public int PenetrationCount => Mathf.Max(0, penetrationCount);
+    public int Star5AdditionalProjectiles => Mathf.Max(1, star5AdditionalProjectiles);
+    public float Star5SpreadAngle => Mathf.Clamp(star5SpreadAngle, 0f, 90f);
 }
