@@ -22,6 +22,11 @@ public sealed class EnemySpawner : MonoBehaviour
     /// <returns></returns>
     public WaveEnemyHandle Spawn(GameObject enemyPrefab)
     {
+        return Spawn(enemyPrefab, EnemyStatScale.Default);
+    }
+
+    public WaveEnemyHandle Spawn(GameObject enemyPrefab, EnemyStatScale statScale)
+    {
         if (!IsReady)
         {
             Debug.LogError("EnemySpawnerに、シーン上の設定済みGameObjectPoolを指定してください。", this);
@@ -51,7 +56,7 @@ public sealed class EnemySpawner : MonoBehaviour
 
         if (enemyBase != null)
         {
-            enemyBase.Initialize(player);
+            enemyBase.Initialize(player, statScale);
         }
 
         WaveEnemyHandle handle =

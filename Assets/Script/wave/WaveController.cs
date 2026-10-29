@@ -30,12 +30,15 @@ public sealed class WaveController : MonoBehaviour
     private WaveState state = WaveState.Idle;
 
     private int waveIndex;
+    private int lastStartedWaveNumber = 1;
     private int nextSpawnIndex;
 
     private float waveElapsedTime;
     private float intervalRemainingTime;
+    private EnemyStatScale currentEnemyStatScale = EnemyStatScale.Default;
 
     public int CurrentWaveNumber => waveIndex + 1;
+    public int ReachedWaveNumber => Mathf.Max(1, lastStartedWaveNumber);
     public int AliveEnemyCount => aliveEnemies.Count;
 
     public float WaveRemainingTime
@@ -203,9 +206,11 @@ public sealed class WaveController : MonoBehaviour
     {
         //前のウェーブの時間や敵の生成位置を引き継がないようにリセット
         waveElapsedTime = 0f;
+        lastStartedWaveNumber = CurrentWaveNumber;
         nextSpawnIndex = 0;
 
         CreateSpawnPlans();
+        currentEnemyStatScale = sequenceData.GetEnemyStatScale(CurrentWaveNumber);
 
         state = WaveState.Running;
         WaveStarted?.Invoke(CurrentWaveNumber);
@@ -325,7 +330,7 @@ public sealed class WaveController : MonoBehaviour
     private void SpawnEnemy(GameObject enemyPrefab)
     {
         WaveEnemyHandle enemy =
-            enemySpawner.Spawn(enemyPrefab);
+            enemySpawner.Spawn(enemyPrefab, currentEnemyStatScale);
 
         if (ReferenceEquals(enemy, null))
         {
