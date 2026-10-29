@@ -24,7 +24,13 @@ public class WeaponManager : MonoBehaviour
     [SerializeField]
     private List<WeaponData> startingWeapons = new();
 
+    [Header("所持上限")]
+    [SerializeField, Min(1)]
+    private int maxWeaponCount = 6;
+
     public IReadOnlyList<Weapon> Weapons => weapons;
+    public int MaxWeaponCount => Mathf.Max(1, maxWeaponCount);
+    public bool HasCapacity => weapons.Count < MaxWeaponCount;
 
     private void Awake()
     {
@@ -96,6 +102,12 @@ public class WeaponManager : MonoBehaviour
             return null;
         }
 
+        if (!HasCapacity)
+        {
+            Debug.LogWarning($"武器所持数が上限（{MaxWeaponCount}）です。", this);
+            return null;
+        }
+
         Weapon weapon = Instantiate(weaponData.WeaponPrefab, weaponMount);
 
         if (!AddWeapon(weapon, weaponData))
@@ -122,6 +134,12 @@ public class WeaponManager : MonoBehaviour
             return false;
         }
 
+        if (!HasCapacity)
+        {
+            Debug.LogWarning($"武器所持数が上限（{MaxWeaponCount}）です。", this);
+            return false;
+        }
+
         if (!InitializeWeapon(weapon, weaponData))
             return false;
 
@@ -144,6 +162,24 @@ public class WeaponManager : MonoBehaviour
             }
         }
         return false;
+    }
+
+    public Weapon GetWeapon(WeaponData weaponData)
+    {
+        if (weaponData == null)
+        {
+            return null;
+        }
+
+        foreach (Weapon weapon in weapons)
+        {
+            if (weapon != null && weapon.WeaponData == weaponData)
+            {
+                return weapon;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
