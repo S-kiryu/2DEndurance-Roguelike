@@ -22,6 +22,46 @@ MonoBehaviour:
     AttackInterval: 0.3
     MaxEnchantLevel: 5
   weaponPrefab: {fileID: 8114830943139020147, guid: 25a3c1d528654914b9c488c8a7f57485, type: 3}
+  upgradeStages:
+  - starLevel: 2
+    displayName: "\u9283 \u26052"
+    description: "\u653B\u6483\u529B +20%"
+    damageMultiplierBonus: 0.2
+    attackSpeedMultiplierBonus: 0
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0
+    projectileSpeedMultiplierBonus: 0
+    penetrationBonus: 0
+  - starLevel: 3
+    displayName: "\u9283 \u26053"
+    description: "\u653B\u6483\u901F\u5EA6 +25%"
+    damageMultiplierBonus: 0
+    attackSpeedMultiplierBonus: 0.25
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0
+    projectileSpeedMultiplierBonus: 0
+    penetrationBonus: 0
+  - starLevel: 4
+    displayName: "\u9283 \u26054"
+    description: "\u5F3E\u901F +25%\u3001\u8CAB\u901A +1"
+    damageMultiplierBonus: 0
+    attackSpeedMultiplierBonus: 0
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0
+    projectileSpeedMultiplierBonus: 0.25
+    penetrationBonus: 1
+  - starLevel: 5
+    displayName: "\u9283 \u26055"
+    description: "\u56FA\u6709\u52B9\u679C: 3\u767A\u3092\u6247\u72B6\u306B\u540C\u6642\u767A\u5C04"
+    damageMultiplierBonus: 0
+    attackSpeedMultiplierBonus: 0
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0
+    projectileSpeedMultiplierBonus: 0
+    penetrationBonus: 0
+  postMaxDamageMultiplierBonus: 0.15
   projectilePrefab: {fileID: 5005, guid: 16382bc6a82a481da5eb6069951347f1, type: 3}
   projectileSpeed: 12
   penetrationCount: 1
+  star5AdditionalProjectiles: 2
+  star5SpreadAngle: 12

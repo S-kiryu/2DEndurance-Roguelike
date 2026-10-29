@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WaveSequenceData
   enemyCatalog: {fileID: 11400000, guid: a616321fc38823b9bec19e45b2a62e30, type: 2}
   waveDuration: 10
-  intervalBetweenWaves: 0
+  intervalBetweenWaves: 3
   spawnTiming: 0
   waves:
   - enemies:
@@ -22,5 +22,12 @@ MonoBehaviour:
       count: 10
   endlessGrowth:
   - enemyId: "\u30C6\u30B9\u30C8\u7528\u306E\u6575"
-    increaseCount: 100
+    increaseCount: 1
     increaseEveryWaves: 1
+  endlessStatGrowth:
+    enabled: 1
+    increaseEveryWaves: 1
+    healthIncreasePerStep: 0.15
+    damageIncreasePerStep: 0.1
+    growthMode: 0
+    roundingMode: 0

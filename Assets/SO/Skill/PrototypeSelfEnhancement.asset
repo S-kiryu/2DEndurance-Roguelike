@@ -15,6 +15,7 @@ MonoBehaviour:
   displayName: "\u8EAB\u4F53\u5F37\u5316"
   description: "\u6700\u5927HP +20\u3001\u79FB\u52D5\u901F\u5EA6 +1"
   icon: {fileID: 0}
+  allowDuplicateInSameSelection: 0
   additionalMaxHealth: 20
   additionalMoveSpeed: 1
   additionalAttackMultiplier: 0

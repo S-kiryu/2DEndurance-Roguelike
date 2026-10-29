@@ -15,4 +15,5 @@ MonoBehaviour:
   displayName: "銃を追加"
   description: "未所持の場合に銃を1つ装備する。同じ武器は重複装備できない。"
   icon: {fileID: 0}
+  allowDuplicateInSameSelection: 0
   weaponData: {fileID: 11400000, guid: b7c4151090122134da3fa463823f1583, type: 2}

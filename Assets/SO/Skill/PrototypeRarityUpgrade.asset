@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d850db9a6e204a03b4dca3ae016723cf, type: 3}
   m_Name: PrototypeRarityUpgrade
   m_EditorClassIdentifier: Assembly-CSharp::WeaponRarityUpgradeSkill
-  displayName: "\u6B66\u5668\u30EC\u30A2\u30EA\u30C6\u30A3\u30A2\u30C3\u30D7\uFF08\u4EEE\uFF09"
-  description: "\u6240\u6301\u6B66\u5668\u304B\u3089\u30E9\u30F3\u30C0\u30E0\u306B1\u3064\u306E\u4EEE\u30EC\u30A2\u30EA\u30C6\u30A3\u3092+1"
+  displayName: "\u6B66\u5668\u5F37\u5316"
+  description: "\u5BFE\u8C61\u6B66\u5668\u306E\u6B21\u306E\u661F\u5F37\u5316\u3092\u53D6\u5F97"
   icon: {fileID: 0}
+  allowDuplicateInSameSelection: 0
