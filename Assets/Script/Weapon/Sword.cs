@@ -89,7 +89,16 @@ public class Sword : Weapon
     {
         if (isAttacking)
         {
-            DealDamage();
+            int hitCount = 1;
+            if (IsAtMaxStar && swordData != null)
+            {
+                hitCount += swordData.Star5AdditionalHits;
+            }
+
+            for (int i = 0; i < hitCount; i++)
+            {
+                DealDamage();
+            }
         }
     }
 
@@ -151,7 +160,7 @@ public class Sword : Weapon
 
         return Physics2D.OverlapCircleAll(
             transform.position,
-            swordData.AttackRange,
+            swordData.AttackRange * WeaponRangeMultiplier,
             layerMask
         );
     }
