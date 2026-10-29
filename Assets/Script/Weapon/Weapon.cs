@@ -13,6 +13,12 @@ public abstract class Weapon : MonoBehaviour
     [SerializeField, Min(0f)] private float damageMultiplierBonus;
 
     private float cooldownRemaining;
+    private float upgradeDamageMultiplierBonus;
+    private float upgradeAttackSpeedMultiplierBonus;
+    private float upgradeCriticalRateBonus;
+    private float upgradeRangeMultiplierBonus;
+    private float upgradeProjectileSpeedMultiplierBonus;
+    private int upgradePenetrationBonus;
 
     protected WeaponData Data => data;
     protected WeaponStats Stats => data.Stats;
@@ -21,13 +27,26 @@ public abstract class Weapon : MonoBehaviour
 
     public WeaponData WeaponData => data;
     public string DisplayName => data != null ? data.Stats.WeaponName : name;
-    public int DebugRarityLevel { get; private set; }
+    public int StarLevel { get; private set; } = 1;
+    public int PostMaxDamageUpgradeCount { get; private set; }
+    public int MaxStarLevel => data != null ? data.MaxStarLevel : 1;
+    public bool IsAtMaxStar => StarLevel >= MaxStarLevel;
+    public bool CanUpgradeStar => data != null && !IsAtMaxStar &&
+        data.GetUpgradeForStar(StarLevel + 1) != null;
+    public bool CanUpgradePostMaxDamage => data != null && IsAtMaxStar;
 
     public PlayerModel OwnerStats { get; private set; }
-    public float WeaponDamageMultiplier => 1f + damageMultiplierBonus;
+    public float WeaponDamageMultiplier =>
+        1f + damageMultiplierBonus + upgradeDamageMultiplierBonus;
+    public float WeaponAttackSpeedMultiplier => 1f + upgradeAttackSpeedMultiplierBonus;
+    public float WeaponRangeMultiplier => 1f + upgradeRangeMultiplierBonus;
+    public float WeaponProjectileSpeedMultiplier => 1f + upgradeProjectileSpeedMultiplierBonus;
+    public int WeaponPenetrationBonus => upgradePenetrationBonus;
     public float EffectiveDamageMultiplier => WeaponDamageMultiplier * (OwnerStats?.AttackMultiplier ?? 1f);
-    public float EffectiveAttackInterval => Stats.AttackInterval / (OwnerStats?.AttackSpeedMultiplier ?? 1f);
-    public float EffectiveCriticalRate => Mathf.Clamp01(Stats.CriticalRate + (OwnerStats?.CriticalRateBonus ?? 0f));
+    public float EffectiveAttackInterval => Stats.AttackInterval /
+        ((OwnerStats?.AttackSpeedMultiplier ?? 1f) * WeaponAttackSpeedMultiplier);
+    public float EffectiveCriticalRate => Mathf.Clamp01(
+        Stats.CriticalRate + upgradeCriticalRateBonus + (OwnerStats?.CriticalRateBonus ?? 0f));
 
     public bool AddDamageMultiplierBonus(float additionalMultiplier)
     {
@@ -39,12 +58,47 @@ public abstract class Weapon : MonoBehaviour
         return true;
     }
 
-    /// <summary>正式なレアリティ実装までの仮状態。戦闘性能には影響しない。</summary>
-    public void UpgradeDebugRarity()
+    public WeaponUpgradeStage GetNextStarUpgrade()
     {
-        int previousLevel = DebugRarityLevel;
-        DebugRarityLevel++;
-        Debug.Log($"[仮レアリティ] {DisplayName}: +{previousLevel} → +{DebugRarityLevel}（性能変更なし）", this);
+        return CanUpgradeStar ? data.GetUpgradeForStar(StarLevel + 1) : null;
+    }
+
+    public bool ApplyNextStarUpgrade()
+    {
+        WeaponUpgradeStage stage = GetNextStarUpgrade();
+        if (stage == null)
+        {
+            return false;
+        }
+
+        upgradeDamageMultiplierBonus += stage.DamageMultiplierBonus;
+        upgradeAttackSpeedMultiplierBonus += stage.AttackSpeedMultiplierBonus;
+        upgradeCriticalRateBonus += stage.CriticalRateBonus;
+        upgradeRangeMultiplierBonus += stage.RangeMultiplierBonus;
+        upgradeProjectileSpeedMultiplierBonus += stage.ProjectileSpeedMultiplierBonus;
+        upgradePenetrationBonus += stage.PenetrationBonus;
+        StarLevel = stage.StarLevel;
+
+        OnStarLevelChanged(StarLevel);
+        Debug.Log($"{DisplayName}が★{StarLevel}になりました。", this);
+        return true;
+    }
+
+    public bool ApplyPostMaxDamageUpgrade()
+    {
+        if (!CanUpgradePostMaxDamage)
+        {
+            return false;
+        }
+
+        upgradeDamageMultiplierBonus += data.PostMaxDamageMultiplierBonus;
+        PostMaxDamageUpgradeCount++;
+        Debug.Log(
+            $"{DisplayName} ★5後攻撃強化 +{PostMaxDamageUpgradeCount} " +
+            $"（攻撃倍率 {WeaponDamageMultiplier:F2}倍）",
+            this
+        );
+        return true;
     }
 
     /// <summary>
@@ -59,7 +113,8 @@ public abstract class Weapon : MonoBehaviour
         }
 
         // 基準の攻撃間隔を現在の攻撃速度で消費し、待機中の強化も直ちに反映する。
-        float attackSpeedMultiplier = OwnerStats?.AttackSpeedMultiplier ?? 1f;
+        float attackSpeedMultiplier =
+            (OwnerStats?.AttackSpeedMultiplier ?? 1f) * WeaponAttackSpeedMultiplier;
         cooldownRemaining = Mathf.Max(cooldownRemaining - deltaTime * attackSpeedMultiplier, 0f);
 
         if (cooldownRemaining <= 0f && TryAttack())
@@ -99,6 +154,14 @@ public abstract class Weapon : MonoBehaviour
         ObjectPool = objectPool;
         OwnerStats = ownerStats;
         cooldownRemaining = 0f;
+        StarLevel = 1;
+        PostMaxDamageUpgradeCount = 0;
+        upgradeDamageMultiplierBonus = 0f;
+        upgradeAttackSpeedMultiplierBonus = 0f;
+        upgradeCriticalRateBonus = 0f;
+        upgradeRangeMultiplierBonus = 0f;
+        upgradeProjectileSpeedMultiplierBonus = 0f;
+        upgradePenetrationBonus = 0;
         OnInitialized();
         return true;
     }
@@ -135,6 +198,10 @@ public abstract class Weapon : MonoBehaviour
     }
 
     protected virtual void OnInitialized()
+    {
+    }
+
+    protected virtual void OnStarLevelChanged(int starLevel)
     {
     }
 

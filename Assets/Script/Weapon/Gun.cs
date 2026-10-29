@@ -30,29 +30,45 @@ public class Gun : Weapon
         }
 
         Transform spawnPoint = firePoint != null ? firePoint : transform;
-        Vector2 direction = transform.lossyScale.x < 0f
+        Vector2 baseDirection = transform.lossyScale.x < 0f
             ? -spawnPoint.right
             : spawnPoint.right;
 
-        Projectile projectile = ObjectPool.Spawn(
-            gunData.ProjectilePrefab,
-            spawnPoint.position,
-            Quaternion.FromToRotation(Vector3.right, direction)
-        );
+        int projectileCount = IsAtMaxStar
+            ? 1 + gunData.Star5AdditionalProjectiles
+            : 1;
+        float spread = IsAtMaxStar ? gunData.Star5SpreadAngle : 0f;
+        bool fired = false;
 
-        if (projectile == null)
+        for (int i = 0; i < projectileCount; i++)
         {
-            return false;
+            float normalized = projectileCount <= 1
+                ? 0.5f
+                : (float)i / (projectileCount - 1);
+            float angle = Mathf.Lerp(-spread * 0.5f, spread * 0.5f, normalized);
+            Vector2 direction = Quaternion.Euler(0f, 0f, angle) * baseDirection;
+
+            Projectile projectile = ObjectPool.Spawn(
+                gunData.ProjectilePrefab,
+                spawnPoint.position,
+                Quaternion.FromToRotation(Vector3.right, direction)
+            );
+
+            if (projectile == null)
+            {
+                continue;
+            }
+
+            projectile.Initialize(
+                direction,
+                gunData.ProjectileSpeed * WeaponProjectileSpeedMultiplier,
+                CalculateDamage(),
+                gunData.PenetrationCount + WeaponPenetrationBonus,
+                transform.root.gameObject
+            );
+            fired = true;
         }
 
-        projectile.Initialize(
-            direction,
-            gunData.ProjectileSpeed,
-            CalculateDamage(),
-            gunData.PenetrationCount,
-            transform.root.gameObject
-        );
-
-        return true;
+        return fired;
     }
 }
