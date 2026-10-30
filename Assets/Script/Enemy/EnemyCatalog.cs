@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 敵の識別IDとPrefabの対応データ
+/// </summary>
 [Serializable]
 public sealed class EnemyCatalogEntry
 {
-    [Tooltip("Waveで選択する識別名。一度使用した名前は変更しないでください。")]
     [SerializeField] private string id;
     [SerializeField] private GameObject prefab;
 
@@ -13,7 +15,9 @@ public sealed class EnemyCatalogEntry
     public GameObject Prefab => prefab;
 }
 
-/// <summary>Prefabを一度だけ登録し、各Waveから識別名で参照する共通カタログ。</summary>
+/// <summary>
+/// 敵のPrefabをまとめて登録し、各Waveから識別IDで参照する共通カタログ。
+/// </summary>
 [CreateAssetMenu(fileName = "EnemyCatalog", menuName = "Enemy/Catalog")]
 public sealed class EnemyCatalog : ScriptableObject
 {
@@ -21,6 +25,12 @@ public sealed class EnemyCatalog : ScriptableObject
 
     public IReadOnlyList<EnemyCatalogEntry> Enemies => enemies;
 
+    /// <summary>
+    ///  指定した識別IDに対応する敵のPrefabを取得する。
+    /// </summary>
+    /// <param name="id">敵の固有のID</param>
+    /// <param name="prefab">敵のプレハブ</param>
+    /// <returns>プレハブを獲得できたかどうか</returns>
     public bool TryGetPrefab(string id, out GameObject prefab)
     {
         prefab = null;

@@ -119,12 +119,19 @@ public sealed class WaveController : MonoBehaviour
         BeginWave();
     }
 
+    /// <summary>
+    /// ウェーブを止める
+    /// </summary>
     public void StopSequence()
     {
         spawnPlans.Clear();
         state = WaveState.Idle;
     }
 
+    /// <summary>
+    /// スタートに必要な情報が残っているのかを確認する
+    /// </summary>
+    /// <returns></returns>
     private bool CanStartSequence()
     {
         if (sequenceData == null)

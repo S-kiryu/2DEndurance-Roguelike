@@ -89,11 +89,7 @@ public class Sword : Weapon
     {
         if (isAttacking)
         {
-            int hitCount = 1;
-            if (IsAtMaxStar && swordData != null)
-            {
-                hitCount += swordData.Star5AdditionalHits;
-            }
+            int hitCount = 1 + AdditionalHits;
 
             for (int i = 0; i < hitCount; i++)
             {

@@ -92,6 +92,10 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
         TryDealContactDamage(other);
     }
 
+    /// <summary>
+    /// 接触時に攻撃を試す関数
+    /// </summary>
+    /// <param name="other"></param>
     private void TryDealContactDamage(Collider2D other)
     {
         if (!isActiveAndEnabled || statusData == null ||
@@ -109,6 +113,10 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
         }
     }
 
+    /// <summary>
+    /// 攻撃処理
+    /// </summary>
+    /// <param name="amount"></param>
     public virtual void TakeDamage(int amount)
     {
         if (!isActiveAndEnabled || amount <= 0 || CurrentHP <= 0)
@@ -124,11 +132,17 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
         }
     }
 
+    /// <summary>
+    /// 死亡処置
+    /// </summary>
     protected virtual void Die()
     {
         GameObjectPool.Despawn(gameObject);
     }
 
+    /// <summary>
+    /// ステータスの初期化
+    /// </summary>
     private void ResetCombatStats()
     {
         currentMaxHP = statusData != null ? Mathf.Max(1, statusData.MaxHP) : 0;

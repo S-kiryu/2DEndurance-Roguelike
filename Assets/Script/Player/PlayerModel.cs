@@ -16,7 +16,6 @@ public sealed class PlayerModel
     public float JumpSpeed => _jumpPower;
     public float InvincibilityTime => _invincibilityTime;
 
-    // 同種の強化は加算する。例: 1 + 0.2 + 0.2 = 1.4倍。
     public float AttackMultiplier => _attackMultiplier + attackMultiplierBonus;
     public float AttackSpeedMultiplier => _attackSpeedMultiplier + attackSpeedMultiplierBonus;
     public float CriticalRateBonus => _criticalRateBonus + criticalRateBonus;
@@ -64,6 +63,10 @@ public sealed class PlayerModel
         IsInvincible = false;
     }
 
+    /// <summary>
+    /// 攻撃を食らう処理
+    /// </summary>
+    /// <param name="damage"></param>
     public void TakeDamage(int damage)
     {
         if (damage <= 0 || IsInvincible || !IsAlive)
@@ -82,6 +85,11 @@ public sealed class PlayerModel
         }
     }
 
+
+    /// <summary>
+    /// 回復処理
+    /// </summary>
+    /// <param name="amount"></param>
     public void Heal(int amount)
     {
         if (!IsAlive)
@@ -123,6 +131,9 @@ public sealed class PlayerModel
         IsInvincible = isInvincible;
     }
 
+    /// <summary>
+    /// 死亡処理
+    /// </summary>
     private void OnPlayerDead()
     {
         Died?.Invoke();

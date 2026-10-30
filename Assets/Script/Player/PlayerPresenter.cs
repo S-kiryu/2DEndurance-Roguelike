@@ -45,6 +45,10 @@ public sealed class PlayerPresenter : MonoBehaviour, IDamageable
         _model.Died -= OnPlayerDied;
     }
 
+    /// <summary>
+    /// 敵からのダメージを受け取り伝達する
+    /// </summary>
+    /// <param name="damage">攻撃ダメージ</param>
     public void ReceiveDamage(int damage)
     {
         if (!isActiveAndEnabled)
@@ -78,16 +82,33 @@ public sealed class PlayerPresenter : MonoBehaviour, IDamageable
         );
     }
 
+    /// <summary>
+    /// 攻撃処理
+    /// </summary>
+    /// <param name="damage">攻撃ダメージ</param>
     public void TakeDamage(int damage)
     {
         ReceiveDamage(damage);
     }
 
+    /// <summary>
+    /// 回復
+    /// </summary>
+    /// <param name="amount">回復量</param>
     public void Heal(int amount)
     {
         _model.Heal(amount);
     }
 
+    /// <summary>
+    /// ステータスを追加する関数
+    /// </summary>
+    /// <param name="additionalMaxHealth">最大体力</param>
+    /// <param name="additionalMoveSpeed">スピード</param>
+    /// <param name="additionalAttackMultiplier">攻撃倍率</param>
+    /// <param name="additionalAttackSpeedMultiplier">攻撃速度</param>
+    /// <param name="additionalCriticalRate">クリティカル率</param>
+    /// <returns></returns>
     public bool ApplyEnhancement(
         int additionalMaxHealth,
         float additionalMoveSpeed,
@@ -108,6 +129,9 @@ public sealed class PlayerPresenter : MonoBehaviour, IDamageable
         return true;
     }
 
+    /// <summary>
+    /// 死亡処理
+    /// </summary>
     private void OnPlayerDied()
     {
         PlayerDied?.Invoke();

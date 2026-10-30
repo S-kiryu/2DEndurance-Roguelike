@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -9,6 +10,7 @@ public class Gun : Weapon
     private Transform firePoint;
 
     private GunData gunData;
+    private bool isBursting;
 
     protected override bool RequiresPool => true;
 
@@ -19,25 +21,55 @@ public class Gun : Weapon
 
     protected override void OnInitialized()
     {
+        StopAllCoroutines();
+        isBursting = false;
         gunData = (GunData)Data;
+    }
+
+    private void OnDisable()
+    {
+        StopAllCoroutines();
+        isBursting = false;
     }
 
     protected override bool TryAttack()
     {
-        if (gunData.ProjectilePrefab == null || ObjectPool == null || !ObjectPool.IsReady)
+        if (isBursting || gunData.ProjectilePrefab == null || ObjectPool == null || !ObjectPool.IsReady)
         {
             return false;
         }
 
+        bool fired = FireVolley();
+        if (fired && gunData.BurstCount > 1)
+        {
+            StartCoroutine(FireRemainingBurst(gunData.BurstCount - 1));
+        }
+        return fired;
+    }
+
+    private IEnumerator FireRemainingBurst(int remaining)
+    {
+        isBursting = true;
+        for (int i = 0; i < remaining; i++)
+        {
+            yield return new WaitForSeconds(gunData.BurstInterval);
+            if (ObjectPool == null || !ObjectPool.IsReady || !FireVolley())
+            {
+                break;
+            }
+        }
+        isBursting = false;
+    }
+
+    private bool FireVolley()
+    {
         Transform spawnPoint = firePoint != null ? firePoint : transform;
         Vector2 baseDirection = transform.lossyScale.x < 0f
             ? -spawnPoint.right
             : spawnPoint.right;
 
-        int projectileCount = IsAtMaxStar
-            ? 1 + gunData.Star5AdditionalProjectiles
-            : 1;
-        float spread = IsAtMaxStar ? gunData.Star5SpreadAngle : 0f;
+        int projectileCount = gunData.ProjectileCount + AdditionalProjectiles;
+        float spread = Mathf.Clamp(gunData.SpreadAngle + SpreadAngleBonus, 0f, 90f);
         bool fired = false;
 
         for (int i = 0; i < projectileCount; i++)

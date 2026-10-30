@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>開始時に確保するPrefabと待機数。</summary>
+/// <summary>開始時に確保するPrefabと待機数</summary>
 [Serializable]
 public sealed class PoolPrewarmEntry
 {
@@ -14,8 +14,7 @@ public sealed class PoolPrewarmEntry
 }
 
 /// <summary>
-/// Prefab単位の汎用プール。敵・弾・エフェクトで共用できる。
-/// シーンへ事前配置し、利用側から明示的に参照する。
+/// Prefab単位の汎用プール
 /// </summary>
 [DefaultExecutionOrder(-1000)]
 [DisallowMultipleComponent]
@@ -54,6 +53,13 @@ public sealed class GameObjectPool : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 指定したプレハブを出現させる
+    /// </summary>
+    /// <param name="prefab"></param>
+    /// <param name="position"></param>
+    /// <param name="rotation"></param>
+    /// <returns></returns>
     public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)
     {
         if (!IsReady || !ValidatePrefab(prefab))
@@ -73,7 +79,6 @@ public sealed class GameObjectPool : MonoBehaviour
             instance = CreateInstance(prefab);
         }
 
-        // 敵と弾を同じrootにまとめず、所有者判定にtransform.rootを使えるようにする。
         instance.transform.SetParent(null, false);
         instance.transform.SetPositionAndRotation(position, rotation);
         instance.IsSpawned = true;
@@ -93,7 +98,7 @@ public sealed class GameObjectPool : MonoBehaviour
         return instance != null ? instance.GetComponent<T>() : null;
     }
 
-    /// <summary>任意。戦闘開始前などに個体を確保して初回生成の負荷を分散できる。</summary>
+    /// <summary>戦闘開始前などに個体を確保して初回生成の負荷を分散できる。</summary>
     public void Prewarm(GameObject prefab, int count)
     {
         if (!IsReady || !ValidatePrefab(prefab))
@@ -126,6 +131,10 @@ public sealed class GameObjectPool : MonoBehaviour
         Destroy(instance);
     }
 
+    /// <summary>
+    /// プールに戻す処理
+    /// </summary>
+    /// <param name="instance"></param>
     internal void Release(PooledObject instance)
     {
         if (shuttingDown || instance.Owner != this || !instance.IsSpawned)
@@ -142,6 +151,11 @@ public sealed class GameObjectPool : MonoBehaviour
         GetStack(instance.Prefab).Push(instance);
     }
 
+    /// <summary>
+    /// スタック数を取得できる
+    /// </summary>
+    /// <param name="prefab">数が欲しいプレハブ</param>
+    /// <returns></returns>
     private Stack<PooledObject> GetStack(GameObject prefab)
     {
         if (!inactive.TryGetValue(prefab, out Stack<PooledObject> stack))
@@ -153,6 +167,11 @@ public sealed class GameObjectPool : MonoBehaviour
         return stack;
     }
 
+    /// <summary>
+    /// いなかった時の生成処理
+    /// </summary>
+    /// <param name="prefab">生成するプレハブ</param>
+    /// <returns></returns>
     private PooledObject CreateInstance(GameObject prefab)
     {
         // 最初から非アクティブな親の下に作り、初期化前のOnEnableを防ぐ。
@@ -164,6 +183,11 @@ public sealed class GameObjectPool : MonoBehaviour
         return pooled;
     }
 
+    /// <summary>
+    /// 必要なコンポーメントがついているかの判定
+    /// </summary>
+    /// <param name="prefab">判定するプレハブ</param>
+    /// <returns></returns>
     private bool ValidatePrefab(GameObject prefab)
     {
         if (prefab == null || !prefab.TryGetComponent<PooledObject>(out _))

@@ -19,6 +19,9 @@ public abstract class Weapon : MonoBehaviour
     private float upgradeRangeMultiplierBonus;
     private float upgradeProjectileSpeedMultiplierBonus;
     private int upgradePenetrationBonus;
+    public int AdditionalHits { get; private set; }
+    public int AdditionalProjectiles { get; private set; }
+    public float SpreadAngleBonus { get; private set; }
 
     protected WeaponData Data => data;
     protected WeaponStats Stats => data.Stats;
@@ -79,6 +82,17 @@ public abstract class Weapon : MonoBehaviour
         upgradePenetrationBonus += stage.PenetrationBonus;
         StarLevel = stage.StarLevel;
 
+        if (stage.Effects != null)
+        {
+            foreach (WeaponUpgradeEffect effect in stage.Effects)
+            {
+                if (effect != null && effect.CanApplyTo(data))
+                {
+                    effect.Apply(this);
+                }
+            }
+        }
+
         OnStarLevelChanged(StarLevel);
         Debug.Log($"{DisplayName}が★{StarLevel}になりました。", this);
         return true;
@@ -99,6 +113,23 @@ public abstract class Weapon : MonoBehaviour
             this
         );
         return true;
+    }
+
+    public void ApplyStatBonus(WeaponUpgradeStat stat, float amount)
+    {
+        amount = Mathf.Max(0f, amount);
+        switch (stat)
+        {
+            case WeaponUpgradeStat.Damage: upgradeDamageMultiplierBonus += amount; break;
+            case WeaponUpgradeStat.AttackSpeed: upgradeAttackSpeedMultiplierBonus += amount; break;
+            case WeaponUpgradeStat.CriticalRate: upgradeCriticalRateBonus += amount; break;
+            case WeaponUpgradeStat.Range: upgradeRangeMultiplierBonus += amount; break;
+            case WeaponUpgradeStat.ProjectileSpeed: upgradeProjectileSpeedMultiplierBonus += amount; break;
+            case WeaponUpgradeStat.Penetration: upgradePenetrationBonus += Mathf.RoundToInt(amount); break;
+            case WeaponUpgradeStat.AdditionalHits: AdditionalHits += Mathf.RoundToInt(amount); break;
+            case WeaponUpgradeStat.AdditionalProjectiles: AdditionalProjectiles += Mathf.RoundToInt(amount); break;
+            case WeaponUpgradeStat.SpreadAngle: SpreadAngleBonus += amount; break;
+        }
     }
 
     /// <summary>
@@ -162,6 +193,9 @@ public abstract class Weapon : MonoBehaviour
         upgradeRangeMultiplierBonus = 0f;
         upgradeProjectileSpeedMultiplierBonus = 0f;
         upgradePenetrationBonus = 0;
+        AdditionalHits = 0;
+        AdditionalProjectiles = 0;
+        SpreadAngleBonus = 0f;
         OnInitialized();
         return true;
     }

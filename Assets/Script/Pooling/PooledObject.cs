@@ -33,6 +33,9 @@ public sealed class PooledObject : MonoBehaviour
         callbacks = listeners.ToArray();
     }
 
+    /// <summary>
+    /// スポーン予約
+    /// </summary>
     internal void PrepareForSpawn()
     {
         SpawnVersion = unchecked(SpawnVersion + 1);
@@ -52,6 +55,9 @@ public sealed class PooledObject : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 消す準備
+    /// </summary>
     internal void PrepareForDespawn()
     {
         foreach (IPoolable listener in callbacks)
@@ -60,6 +66,9 @@ public sealed class PooledObject : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// プールに戻す
+    /// </summary>
     public void Release()
     {
         if (Owner != null)

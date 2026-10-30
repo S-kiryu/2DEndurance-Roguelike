@@ -82,11 +82,18 @@ public sealed class SkillSelectionManager : MonoBehaviour
         CancelSelection();
     }
 
+    /// <summary>
+    /// ウェーブが終わった時の処理
+    /// </summary>
+    /// <param name="waveNumber">ウェーブ数</param>
     private void OnWaveEnded(int waveNumber)
     {
         OpenSelection();
     }
 
+    /// <summary>
+    /// 選択肢を表示させる処理
+    /// </summary>
     public void OpenSelection()
     {
         if (!Application.isPlaying || !isActiveAndEnabled || IsChoosing ||
@@ -166,6 +173,9 @@ public sealed class SkillSelectionManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// セレクトをキャンセルする処理
+    /// </summary>
     public void CancelSelection()
     {
         if (!IsChoosing)

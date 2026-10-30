@@ -120,6 +120,10 @@ public sealed class PlayerInputReader : MonoBehaviour
         lastPressedDirection = 0f;
     }
 
+    /// <summary>
+    /// 左側に移動した際の処理
+    /// </summary>
+    /// <param name="context"></param>
     private void OnMoveLeft(InputAction.CallbackContext context)
     {
         leftPressed = context.ReadValueAsButton();
@@ -130,6 +134,9 @@ public sealed class PlayerInputReader : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 右側に移動した際の処理
+    /// </summary>
     private void OnMoveRight(InputAction.CallbackContext context)
     {
         rightPressed = context.ReadValueAsButton();
@@ -140,11 +147,18 @@ public sealed class PlayerInputReader : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// ジャンプ処理
+    /// </summary>
+    /// <param name="context"></param>
     private void OnJump(InputAction.CallbackContext context)
     {
         jumpRequested = Time.timeScale > 0f;
     }
 
+    /// <summary>
+    /// ジャンプのキャンセル処理
+    /// </summary>
     public void ClearJumpRequest()
     {
         jumpRequested = false;

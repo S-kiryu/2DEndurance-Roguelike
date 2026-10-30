@@ -48,6 +48,9 @@ public sealed class PlayerView : MonoBehaviour
         RestoreColor();
     }
 
+    /// <summary>
+    /// ダメージを食らったときの処理
+    /// </summary>
     public void PlayDamageFlash()
     {
         if (!isActiveAndEnabled || damageRenderer == null)
@@ -63,6 +66,10 @@ public sealed class PlayerView : MonoBehaviour
         damageFlash = StartCoroutine(FlashDamage());
     }
 
+    /// <summary>
+    /// ダメージを食らった表現をする関数
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator FlashDamage()
     {
         damageRenderer.color = new Color(1f, 0f, 0f, originalColor.a);
@@ -73,6 +80,9 @@ public sealed class PlayerView : MonoBehaviour
         damageFlash = null;
     }
 
+    /// <summary>
+    /// 初期の色に戻す
+    /// </summary>
     private void RestoreColor()
     {
         if (damageRenderer != null)

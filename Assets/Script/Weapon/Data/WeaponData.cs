@@ -22,6 +22,10 @@ public sealed class WeaponUpgradeStage
     [SerializeField, Min(0f)] private float projectileSpeedMultiplierBonus;
     [SerializeField, Min(0)] private int penetrationBonus;
 
+    [Header("追加効果（登録した順に適用）")]
+    [Tooltip("ProjectのCreate > Weapons > Effectsから作成した効果を登録。星5以外にも設定できます。")]
+    [SerializeField] private List<WeaponUpgradeEffect> effects = new();
+
     public int StarLevel => Mathf.Clamp(starLevel, 2, 5);
     public string DisplayName => displayName;
     public string Description => description;
@@ -31,6 +35,7 @@ public sealed class WeaponUpgradeStage
     public float RangeMultiplierBonus => Mathf.Max(0f, rangeMultiplierBonus);
     public float ProjectileSpeedMultiplierBonus => Mathf.Max(0f, projectileSpeedMultiplierBonus);
     public int PenetrationBonus => Mathf.Max(0, penetrationBonus);
+    public IReadOnlyList<WeaponUpgradeEffect> Effects => effects;
 }
 
 /// <summary>
@@ -45,7 +50,7 @@ public abstract class WeaponData : ScriptableObject
     private Weapon weaponPrefab;
 
     [Header("星2～5の固定強化")]
-    [Tooltip("各星を1つずつ登録します。星5の固有効果は剣・銃それぞれの欄で設定します。")]
+    [Tooltip("星2～最大星を1つずつ登録します。固有効果は各段階の追加効果に登録します。")]
     [SerializeField]
     private List<WeaponUpgradeStage> upgradeStages = new();
 

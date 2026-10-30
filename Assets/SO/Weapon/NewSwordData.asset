@@ -32,6 +32,7 @@ MonoBehaviour:
     rangeMultiplierBonus: 0
     projectileSpeedMultiplierBonus: 0
     penetrationBonus: 0
+    effects: []
   - starLevel: 3
     displayName: "\u5263 \u26053"
     description: "\u653B\u6483\u901F\u5EA6 +20%"
@@ -41,6 +42,7 @@ MonoBehaviour:
     rangeMultiplierBonus: 0
     projectileSpeedMultiplierBonus: 0
     penetrationBonus: 0
+    effects: []
   - starLevel: 4
     displayName: "\u5263 \u26054"
     description: "\u653B\u6483\u7BC4\u56F2 +30%"
@@ -50,6 +52,7 @@ MonoBehaviour:
     rangeMultiplierBonus: 0.3
     projectileSpeedMultiplierBonus: 0
     penetrationBonus: 0
+    effects: []
   - starLevel: 5
     displayName: "\u5263 \u26055"
     description: "\u56FA\u6709\u52B9\u679C: \u547D\u4E2D\u6642\u306B\u8FFD\u52A0\u30671\u56DE\u30C0\u30E1\u30FC\u30B8"
@@ -59,10 +62,11 @@ MonoBehaviour:
     rangeMultiplierBonus: 0
     projectileSpeedMultiplierBonus: 0
     penetrationBonus: 0
+    effects:
+    - {fileID: 11400000, guid: 73af781ea1ef4b5884c5ec4b21010312, type: 2}
   postMaxDamageMultiplierBonus: 0.15
   attackRange: 2.2
   attackAngle: 110
   targetLayers:
     serializedVersion: 2
     m_Bits: 0
-  star5AdditionalHits: 1

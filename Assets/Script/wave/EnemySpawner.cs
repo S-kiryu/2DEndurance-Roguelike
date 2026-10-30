@@ -65,6 +65,10 @@ public sealed class EnemySpawner : MonoBehaviour
         return handle;
     }
 
+    /// <summary>
+    /// ランダムでスポーン位置を決める
+    /// </summary>
+    /// <returns></returns>
     private Transform GetRandomSpawnPoint()
     {
         if (spawnPoints == null || spawnPoints.Length == 0)

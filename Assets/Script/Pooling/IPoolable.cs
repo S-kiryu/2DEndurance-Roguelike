@@ -4,6 +4,12 @@
 /// </summary>
 public interface IPoolable
 {
+    /// <summary>
+    /// スポーン処置
+    /// </summary>
     void OnPoolSpawned();
+    /// <summary>
+    /// 削除処理
+    /// </summary>
     void OnPoolDespawned();
 }
