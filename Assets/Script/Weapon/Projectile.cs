@@ -13,6 +13,7 @@ public sealed class Projectile : MonoBehaviour, IPoolable
     private int damage;
     private int remainingPenetrations;
     private GameObject owner;
+    private WeaponContext weaponContext;
 
     private void Awake()
     {
@@ -31,12 +32,14 @@ public sealed class Projectile : MonoBehaviour, IPoolable
         damage = 0;
         remainingPenetrations = 0;
         owner = null;
+        weaponContext = null;
     }
 
     public void OnPoolDespawned()
     {
         damagedTargets.Clear();
         owner = null;
+        weaponContext = null;
         body.linearVelocity = Vector2.zero;
         body.angularVelocity = 0f;
     }
@@ -71,11 +74,13 @@ public sealed class Projectile : MonoBehaviour, IPoolable
         float speed,
         int attackDamage,
         int penetrationCount,
-        GameObject projectileOwner)
+        GameObject projectileOwner,
+        WeaponContext context = null)
     {
         damage = attackDamage;
         remainingPenetrations = penetrationCount;
         owner = projectileOwner;
+        weaponContext = context;
         body.linearVelocity = direction.normalized * speed;
     }
 
@@ -105,7 +110,10 @@ public sealed class Projectile : MonoBehaviour, IPoolable
             return;
         }
 
-        target.TakeDamage(damage);
+        if (weaponContext != null)
+            weaponContext.DealDamage(other, damage);
+        else
+            target.TakeDamage(damage);
 
         if (remainingPenetrations <= 0)
         {

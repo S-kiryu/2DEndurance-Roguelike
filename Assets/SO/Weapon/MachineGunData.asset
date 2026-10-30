@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0dfab51e81a244daf559ab89dfb6a8, type: 3}
+  m_Name: MachineGunData
+  m_EditorClassIdentifier: Assembly-CSharp::GunData
+  stats:
+    WeaponName: Machine Gun
+    Icon: {fileID: 0}
+    Description: Rapid fire sample
+    Damage: 4
+    CriticalRate: 0.1
+    CriticalMultiplier: 2
+    AttackInterval: 0.08
+    MaxEnchantLevel: 5
+  weaponPrefab: {fileID: 8114830943139020147, guid: a18f52431dcc4c46b4193131e7390106, type: 3}
+  upgradeStages:
+  - starLevel: 2
+    displayName: "Machine Gun \u26052"
+    description: "\u653B\u6483\u529B +20%"
+    damageMultiplierBonus: 0.2
+  - starLevel: 3
+    displayName: "Machine Gun \u26053"
+    description: "\u653B\u6483\u901F\u5EA6 +25%"
+    attackSpeedMultiplierBonus: 0.25
+  - starLevel: 4
+    displayName: "Machine Gun \u26054"
+    description: "\u5F3E\u901F +25%\u3001\u8CAB\u901A +1"
+    projectileSpeedMultiplierBonus: 0.25
+    penetrationBonus: 1
+  - starLevel: 5
+    displayName: "Machine Gun \u26055"
+    description: "\u653B\u6483\u901F\u5EA6 +50%"
+    effects: []
+  postMaxDamageMultiplierBonus: 0.15
+  projectilePrefab: {fileID: 5005, guid: 16382bc6a82a481da5eb6069951347f1, type: 3}
+  projectileSpeed: 12
+  penetrationCount: 0
+  projectileCount: 1
+  spreadAngle: 0
+  burstCount: 1
+  burstInterval: 0.08

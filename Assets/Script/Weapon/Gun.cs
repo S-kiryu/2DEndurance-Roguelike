@@ -26,8 +26,9 @@ public class Gun : Weapon
         gunData = (GunData)Data;
     }
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
+        base.OnDisable();
         StopAllCoroutines();
         isBursting = false;
     }
@@ -63,6 +64,7 @@ public class Gun : Weapon
 
     private bool FireVolley()
     {
+        NotifyAttackStarted();
         Transform spawnPoint = firePoint != null ? firePoint : transform;
         Vector2 baseDirection = transform.lossyScale.x < 0f
             ? -spawnPoint.right
@@ -96,11 +98,13 @@ public class Gun : Weapon
                 gunData.ProjectileSpeed * WeaponProjectileSpeedMultiplier,
                 CalculateDamage(),
                 gunData.PenetrationCount + WeaponPenetrationBonus,
-                transform.root.gameObject
+                transform.root.gameObject,
+                Context
             );
             fired = true;
         }
 
+        NotifyAttackFinished();
         return fired;
     }
 }

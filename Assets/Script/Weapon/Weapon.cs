@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -19,9 +21,15 @@ public abstract class Weapon : MonoBehaviour
     private float upgradeRangeMultiplierBonus;
     private float upgradeProjectileSpeedMultiplierBonus;
     private int upgradePenetrationBonus;
-    public int AdditionalHits { get; private set; }
-    public int AdditionalProjectiles { get; private set; }
-    public float SpreadAngleBonus { get; private set; }
+    private int additionalHits;
+    private int additionalProjectiles;
+    private float spreadAngleBonus;
+    private readonly List<WeaponEffect> effects = new();
+    private WeaponEffect[] effectSnapshot = Array.Empty<WeaponEffect>();
+    public WeaponContext Context { get; private set; }
+    public int AdditionalHits => additionalHits + Mathf.RoundToInt(GetEffectBonus(WeaponUpgradeStat.AdditionalHits));
+    public int AdditionalProjectiles => additionalProjectiles + Mathf.RoundToInt(GetEffectBonus(WeaponUpgradeStat.AdditionalProjectiles));
+    public float SpreadAngleBonus => spreadAngleBonus + GetEffectBonus(WeaponUpgradeStat.SpreadAngle);
 
     protected WeaponData Data => data;
     protected WeaponStats Stats => data.Stats;
@@ -40,16 +48,79 @@ public abstract class Weapon : MonoBehaviour
 
     public PlayerModel OwnerStats { get; private set; }
     public float WeaponDamageMultiplier =>
-        1f + damageMultiplierBonus + upgradeDamageMultiplierBonus;
-    public float WeaponAttackSpeedMultiplier => 1f + upgradeAttackSpeedMultiplierBonus;
-    public float WeaponRangeMultiplier => 1f + upgradeRangeMultiplierBonus;
-    public float WeaponProjectileSpeedMultiplier => 1f + upgradeProjectileSpeedMultiplierBonus;
-    public int WeaponPenetrationBonus => upgradePenetrationBonus;
+        Mathf.Max(0f, 1f + damageMultiplierBonus + upgradeDamageMultiplierBonus + GetEffectBonus(WeaponUpgradeStat.Damage));
+    public float WeaponAttackSpeedMultiplier => Mathf.Max(0.01f, 1f + upgradeAttackSpeedMultiplierBonus + GetEffectBonus(WeaponUpgradeStat.AttackSpeed));
+    public float WeaponRangeMultiplier => Mathf.Max(0f, 1f + upgradeRangeMultiplierBonus + GetEffectBonus(WeaponUpgradeStat.Range));
+    public float WeaponProjectileSpeedMultiplier => Mathf.Max(0f, 1f + upgradeProjectileSpeedMultiplierBonus + GetEffectBonus(WeaponUpgradeStat.ProjectileSpeed));
+    public int WeaponPenetrationBonus => upgradePenetrationBonus + Mathf.RoundToInt(GetEffectBonus(WeaponUpgradeStat.Penetration));
     public float EffectiveDamageMultiplier => WeaponDamageMultiplier * (OwnerStats?.AttackMultiplier ?? 1f);
     public float EffectiveAttackInterval => Stats.AttackInterval /
         ((OwnerStats?.AttackSpeedMultiplier ?? 1f) * WeaponAttackSpeedMultiplier);
     public float EffectiveCriticalRate => Mathf.Clamp01(
-        Stats.CriticalRate + upgradeCriticalRateBonus + (OwnerStats?.CriticalRateBonus ?? 0f));
+        Stats.CriticalRate + upgradeCriticalRateBonus + GetEffectBonus(WeaponUpgradeStat.CriticalRate) + (OwnerStats?.CriticalRateBonus ?? 0f));
+
+    internal void RegisterEffect(WeaponEffect effect)
+    {
+        if (!effects.Contains(effect))
+        {
+            effects.Add(effect);
+            effectSnapshot = effects.ToArray();
+        }
+        effect.Bind(Context);
+    }
+
+    internal void UnregisterEffect(WeaponEffect effect)
+    {
+        if (effects.Remove(effect)) effectSnapshot = effects.ToArray();
+        effect.Bind(null);
+    }
+
+    private float GetEffectBonus(WeaponUpgradeStat stat)
+    {
+        float bonus = 0f;
+        foreach (WeaponEffect effect in effectSnapshot)
+            if (effect != null && effect.IsEffectActive) bonus += effect.GetStatBonus(stat);
+        return bonus;
+    }
+
+    private void ForEachEffect(Action<WeaponEffect> action)
+    {
+        foreach (WeaponEffect effect in effectSnapshot)
+        {
+            if (effect == null) continue;
+            effect.RefreshActivation();
+            if (effect.IsEffectActive) action(effect);
+        }
+    }
+
+    protected void NotifyAttackStarted() => ForEachEffect(effect => effect.OnAttackStarted());
+    protected void NotifyAttackFinished() => ForEachEffect(effect => effect.OnAttackFinished());
+    internal void NotifyHit(WeaponHit hit)
+    {
+        ForEachEffect(effect => effect.OnHit(hit));
+        if (hit.WasKilled) ForEachEffect(effect => effect.OnKill(hit));
+    }
+
+    protected virtual void OnEnable()
+    {
+        foreach (WeaponEffect effect in effectSnapshot)
+            if (effect != null) effect.RefreshActivation();
+    }
+
+    protected virtual void OnDisable()
+    {
+        foreach (WeaponEffect effect in effectSnapshot)
+            if (effect != null) effect.RefreshActivation();
+    }
+
+    protected virtual void OnDestroy()
+    {
+        foreach (WeaponEffect effect in effectSnapshot)
+            if (effect != null) effect.Bind(null);
+        Context = null;
+        effects.Clear();
+        effectSnapshot = Array.Empty<WeaponEffect>();
+    }
 
     public bool AddDamageMultiplierBonus(float additionalMultiplier)
     {
@@ -94,6 +165,8 @@ public abstract class Weapon : MonoBehaviour
         }
 
         OnStarLevelChanged(StarLevel);
+        foreach (WeaponEffect effect in effectSnapshot)
+            if (effect != null) effect.RefreshActivation();
         Debug.Log($"{DisplayName}が★{StarLevel}になりました。", this);
         return true;
     }
@@ -126,9 +199,9 @@ public abstract class Weapon : MonoBehaviour
             case WeaponUpgradeStat.Range: upgradeRangeMultiplierBonus += amount; break;
             case WeaponUpgradeStat.ProjectileSpeed: upgradeProjectileSpeedMultiplierBonus += amount; break;
             case WeaponUpgradeStat.Penetration: upgradePenetrationBonus += Mathf.RoundToInt(amount); break;
-            case WeaponUpgradeStat.AdditionalHits: AdditionalHits += Mathf.RoundToInt(amount); break;
-            case WeaponUpgradeStat.AdditionalProjectiles: AdditionalProjectiles += Mathf.RoundToInt(amount); break;
-            case WeaponUpgradeStat.SpreadAngle: SpreadAngleBonus += amount; break;
+            case WeaponUpgradeStat.AdditionalHits: additionalHits += Mathf.RoundToInt(amount); break;
+            case WeaponUpgradeStat.AdditionalProjectiles: additionalProjectiles += Mathf.RoundToInt(amount); break;
+            case WeaponUpgradeStat.SpreadAngle: spreadAngleBonus += amount; break;
         }
     }
 
@@ -138,11 +211,17 @@ public abstract class Weapon : MonoBehaviour
     /// <param name="deltaTime"></param>
     public void Tick(float deltaTime)
     {
-        if (data == null || deltaTime <= 0f)
+        if (Context == null || !isActiveAndEnabled || data == null || deltaTime <= 0f)
         {
             return;
         }
 
+        foreach (WeaponEffect effect in effectSnapshot)
+        {
+            if (effect == null) continue;
+            effect.RefreshActivation();
+            if (effect.IsEffectActive) effect.OnTick(deltaTime);
+        }
         // 基準の攻撃間隔を現在の攻撃速度で消費し、待機中の強化も直ちに反映する。
         float attackSpeedMultiplier =
             (OwnerStats?.AttackSpeedMultiplier ?? 1f) * WeaponAttackSpeedMultiplier;
@@ -184,6 +263,9 @@ public abstract class Weapon : MonoBehaviour
 
         ObjectPool = objectPool;
         OwnerStats = ownerStats;
+        foreach (WeaponEffect effect in effectSnapshot)
+            if (effect != null) effect.Bind(null);
+        Context = null;
         cooldownRemaining = 0f;
         StarLevel = 1;
         PostMaxDamageUpgradeCount = 0;
@@ -193,10 +275,13 @@ public abstract class Weapon : MonoBehaviour
         upgradeRangeMultiplierBonus = 0f;
         upgradeProjectileSpeedMultiplierBonus = 0f;
         upgradePenetrationBonus = 0;
-        AdditionalHits = 0;
-        AdditionalProjectiles = 0;
-        SpreadAngleBonus = 0f;
+        additionalHits = 0;
+        additionalProjectiles = 0;
+        spreadAngleBonus = 0f;
         OnInitialized();
+        Context = new WeaponContext(this, ownerStats, objectPool);
+        foreach (WeaponEffect effect in GetComponentsInChildren<WeaponEffect>(true))
+            if (effect.isActiveAndEnabled && effect.GetComponentInParent<Weapon>() == this) RegisterEffect(effect);
         return true;
     }
 
@@ -226,7 +311,7 @@ public abstract class Weapon : MonoBehaviour
     protected int CalculateDamage()
     {
         float criticalRate = EffectiveCriticalRate;
-        bool isCritical = criticalRate >= 1f || Random.value < criticalRate;
+        bool isCritical = criticalRate >= 1f || UnityEngine.Random.value < criticalRate;
         float multiplier = isCritical ? Stats.CriticalMultiplier : 1f;
         return Mathf.Max(1, Mathf.RoundToInt(Stats.Damage * EffectiveDamageMultiplier * multiplier));
     }
