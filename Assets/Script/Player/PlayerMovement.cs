@@ -3,6 +3,7 @@ using UnityEngine;
 /// <summary>
 /// playerの移動を制御するクラス
 /// </summary>
+[RequireComponent(typeof(PlayerScreenBounds))]
 public sealed class PlayerMovement : MonoBehaviour
 {
 

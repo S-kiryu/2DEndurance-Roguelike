@@ -3,6 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 敵のベースクラス
 /// </summary>
+[RequireComponent(typeof(EnemyView))]
 public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
 {
     [SerializeField] private EnemyStatusData statusData;
@@ -10,6 +11,7 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
     private IDamageable playerDamageable;
     private int currentMaxHP;
     private int currentDamage;
+    private EnemyView view;
 
     public int CurrentHP { get; private set; }
     public int CurrentMaxHP => currentMaxHP;
@@ -19,6 +21,7 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
 
     protected virtual void Awake()
     {
+        view = GetComponent<EnemyView>();
         if (statusData == null)
         {
             Debug.LogError(
@@ -125,6 +128,11 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
         }
 
         CurrentHP = Mathf.Max(CurrentHP - amount, 0);
+
+        if (view != null)
+        {
+            view.PlayDamageFlash();
+        }
 
         if (CurrentHP == 0)
         {

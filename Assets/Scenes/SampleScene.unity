@@ -1854,6 +1854,7 @@ GameObject:
   - component: {fileID: 1067432069}
   - component: {fileID: 1067432068}
   - component: {fileID: 1067432067}
+  - component: {fileID: 1067432071}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1876,6 +1877,22 @@ MonoBehaviour:
   moveLeftAction: {fileID: 4198306200788434180, guid: d0d03613c96e33b4ba5a85c5fc678dac, type: 3}
   moveRightAction: {fileID: -8603597446695860782, guid: d0d03613c96e33b4ba5a85c5fc678dac, type: 3}
   jumpAction: {fileID: -6227678742328473989, guid: d0d03613c96e33b4ba5a85c5fc678dac, type: 3}
+--- !u!114 &1067432071
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1067432062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c73b1b28638c414aba1e942230ea7796, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerScreenBounds
+  targetCamera: {fileID: 519420031}
+  bodyCollider: {fileID: 1067432067}
+  bodyRenderer: {fileID: 1067432065}
+  padding: 0.02
 --- !u!114 &1067432064
 MonoBehaviour:
   m_ObjectHideFlags: 0
