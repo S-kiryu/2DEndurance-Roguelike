@@ -16,6 +16,7 @@ public sealed class GameSessionUI : MonoBehaviour
     [SerializeField] private Text resultTimeText;
     [SerializeField] private Text resultWaveText;
     [SerializeField] private Button retryButton;
+    [SerializeField] private Button titleButton;
 
     private GameSessionManager session;
 
@@ -35,6 +36,11 @@ public sealed class GameSessionUI : MonoBehaviour
             retryButton.onClick.RemoveListener(Restart);
             retryButton.onClick.AddListener(Restart);
         }
+        if (titleButton != null)
+        {
+            titleButton.onClick.RemoveListener(ReturnToTitle);
+            titleButton.onClick.AddListener(ReturnToTitle);
+        }
     }
 
     private void OnDestroy()
@@ -42,6 +48,10 @@ public sealed class GameSessionUI : MonoBehaviour
         if (retryButton != null)
         {
             retryButton.onClick.RemoveListener(Restart);
+        }
+        if (titleButton != null)
+        {
+            titleButton.onClick.RemoveListener(ReturnToTitle);
         }
     }
 
@@ -83,7 +93,13 @@ public sealed class GameSessionUI : MonoBehaviour
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(true);
+            gameOverPanel.transform.SetAsLastSibling();
         }
+    }
+
+    private void ReturnToTitle()
+    {
+        session?.ReturnToTitle();
     }
 
     private void Restart()

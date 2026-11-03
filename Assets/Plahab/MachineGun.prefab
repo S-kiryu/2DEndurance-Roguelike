@@ -141,6 +141,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
   data: {fileID: 11400000, guid: 73af781ea1ef4b5884c5ec4b21010320, type: 2}
+  damageMultiplierBonus: 0
   firePoint: {fileID: 4524941580193620073}
 --- !u!114 &83000001
 MonoBehaviour:
@@ -152,7 +153,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a18f52431dcc4c46b4193131e7390103, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponStatBonusEffect
   activationStar: 5
   stat: 1

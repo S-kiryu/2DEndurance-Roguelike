@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: MachineGunData
   m_EditorClassIdentifier: Assembly-CSharp::GunData
   stats:
-    WeaponName: Machine Gun
+    WeaponName: "\u30DE\u30B7\u30F3\u30AC\u30F3"
     Icon: {fileID: 0}
-    Description: Rapid fire sample
+    Description: "\u5F3E\u3092\u7D20\u65E9\u304F\u9023\u5C04\u3059\u308B\u6B66\u5668"
     Damage: 4
     CriticalRate: 0.1
     CriticalMultiplier: 2
@@ -27,18 +27,41 @@ MonoBehaviour:
     displayName: "Machine Gun \u26052"
     description: "\u653B\u6483\u529B +20%"
     damageMultiplierBonus: 0.2
+    attackSpeedMultiplierBonus: 0
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0
+    projectileSpeedMultiplierBonus: 0
+    penetrationBonus: 0
+    effects: []
   - starLevel: 3
     displayName: "Machine Gun \u26053"
     description: "\u653B\u6483\u901F\u5EA6 +25%"
+    damageMultiplierBonus: 0
     attackSpeedMultiplierBonus: 0.25
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0
+    projectileSpeedMultiplierBonus: 0
+    penetrationBonus: 0
+    effects: []
   - starLevel: 4
     displayName: "Machine Gun \u26054"
     description: "\u5F3E\u901F +25%\u3001\u8CAB\u901A +1"
+    damageMultiplierBonus: 0
+    attackSpeedMultiplierBonus: 0
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0
     projectileSpeedMultiplierBonus: 0.25
     penetrationBonus: 1
+    effects: []
   - starLevel: 5
     displayName: "Machine Gun \u26055"
     description: "\u653B\u6483\u901F\u5EA6 +50%"
+    damageMultiplierBonus: 0
+    attackSpeedMultiplierBonus: 0
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0
+    projectileSpeedMultiplierBonus: 0
+    penetrationBonus: 0
     effects: []
   postMaxDamageMultiplierBonus: 0.15
   projectilePrefab: {fileID: 5005, guid: 16382bc6a82a481da5eb6069951347f1, type: 3}

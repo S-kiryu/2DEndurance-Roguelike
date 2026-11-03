@@ -16,6 +16,8 @@ public sealed class GameSessionManager : MonoBehaviour
     public int ReachedWave { get; private set; } = 1;
     public bool IsGameOver { get; private set; }
 
+    private bool isLeavingScene;
+
     private void Awake()
     {
         Time.timeScale = 1f;
@@ -61,8 +63,18 @@ public sealed class GameSessionManager : MonoBehaviour
 
     public void RestartRun()
     {
+        if (isLeavingScene || !IsGameOver) return;
+        isLeavingScene = true;
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene(gameObject.scene.path);
+    }
+
+    public void ReturnToTitle()
+    {
+        if (isLeavingScene || !IsGameOver) return;
+        isLeavingScene = true;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(TitleScreenUI.ScenePath);
     }
 
     private void OnPlayerDied()
