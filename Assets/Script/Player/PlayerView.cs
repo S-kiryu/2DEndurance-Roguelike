@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// Playerの見た目を制御する
@@ -109,5 +110,21 @@ public sealed class PlayerView : MonoBehaviour
             : absoluteScaleX;
 
         visualRoot.localScale = scale;
+    }
+
+    /// <summary>
+    /// 移動をするアニメーション
+    /// </summary>
+    /// <param name="moveX"></param>
+    public void SetMovement(float moveX)
+    {
+        bool isMoving = Mathf.Abs(moveX) > 0.01f;
+
+        float facingDirection = Mathf.Sign(visualRoot.localScale.x);
+        // プレイヤーの向きに対して、移動方向がどちらかを計算する
+        float relativeDirection = moveX * facingDirection;
+
+        animator.SetBool("Move", isMoving);
+        animator.SetFloat("Direction", relativeDirection);
     }
 }

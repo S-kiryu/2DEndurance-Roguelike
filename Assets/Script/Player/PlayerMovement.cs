@@ -53,6 +53,7 @@ public sealed class PlayerMovement : MonoBehaviour
         );
 
         _view.SetFacing(mouseDirection);
+        _view.SetMovement(_input.MoveX);
     }
 
     /// <summary>
