@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// 敵ステータスデータ
+/// </summary>
 [CreateAssetMenu(
     fileName = "EnemyStatus",
     menuName = "Enemy/Status Data"

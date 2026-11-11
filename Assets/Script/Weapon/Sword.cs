@@ -37,8 +37,9 @@ public class Sword : Weapon
         SetVisualVisible(false);
     }
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
+        base.OnDisable();
         isAttacking = false;
 
         if (animator != null)
@@ -76,6 +77,7 @@ public class Sword : Weapon
         }
 
         isAttacking = true;
+        NotifyAttackStarted();
         SetVisualVisible(true);
         animator.ResetTrigger(AttackTrigger);
         animator.SetTrigger(AttackTrigger);
@@ -89,7 +91,12 @@ public class Sword : Weapon
     {
         if (isAttacking)
         {
-            DealDamage();
+            int hitCount = 1 + AdditionalHits;
+
+            for (int i = 0; i < hitCount; i++)
+            {
+                DealDamage();
+            }
         }
     }
 
@@ -98,6 +105,7 @@ public class Sword : Weapon
     /// </summary>
     public void FinishAttack()
     {
+        bool finished = isAttacking;
         if (visualRoot != null)
         {
             visualRoot.localRotation = idleRotation;
@@ -105,6 +113,7 @@ public class Sword : Weapon
 
         SetVisualVisible(false);
         isAttacking = false;
+        if (finished) NotifyAttackFinished();
     }
 
     private bool HasTargetInRange()
@@ -138,7 +147,7 @@ public class Sword : Weapon
 
             if (target != null && hitTargets.Add(target))
             {
-                target.TakeDamage(CalculateDamage());
+                Context.DealDamage(targetCollider, CalculateDamage());
             }
         }
     }
@@ -151,7 +160,7 @@ public class Sword : Weapon
 
         return Physics2D.OverlapCircleAll(
             transform.position,
-            swordData.AttackRange,
+            swordData.AttackRange * WeaponRangeMultiplier,
             layerMask
         );
     }

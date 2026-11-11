@@ -10,6 +10,16 @@ public sealed class WaveEnemyHandle : MonoBehaviour
 
     private bool removed;
 
+    private void OnEnable()
+    {
+        removed = false;
+    }
+
+    private void OnDisable()
+    {
+        NotifyRemoved();
+    }
+
     private void OnDestroy()
     {
         NotifyRemoved();

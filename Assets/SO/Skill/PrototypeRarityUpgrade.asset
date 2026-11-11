@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d850db9a6e204a03b4dca3ae016723cf, type: 3}
+  m_Name: PrototypeRarityUpgrade
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponRarityUpgradeSkill
+  displayName: "\u6B66\u5668\u5F37\u5316"
+  description: "\u5BFE\u8C61\u6B66\u5668\u306E\u6B21\u306E\u661F\u5F37\u5316\u3092\u53D6\u5F97"
+  icon: {fileID: 0}
+  allowDuplicateInSameSelection: 0

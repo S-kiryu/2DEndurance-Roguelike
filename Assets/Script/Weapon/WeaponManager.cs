@@ -6,6 +6,12 @@ using UnityEngine;
 /// </summary>
 public class WeaponManager : MonoBehaviour
 {
+    [Header("シーン上の共通プール")]
+    [SerializeField] private GameObjectPool objectPool;
+
+    [Header("武器の所有者")]
+    [SerializeField] private PlayerPresenter player;
+
     [Header("装備位置")]
     [SerializeField]
     private Transform weaponMount;
@@ -18,6 +24,14 @@ public class WeaponManager : MonoBehaviour
     [SerializeField]
     private List<WeaponData> startingWeapons = new();
 
+    [Header("所持上限")]
+    [SerializeField, Min(1)]
+    private int maxWeaponCount = 6;
+
+    public IReadOnlyList<Weapon> Weapons => weapons;
+    public int MaxWeaponCount => Mathf.Max(1, maxWeaponCount);
+    public bool HasCapacity => weapons.Count < MaxWeaponCount;
+
     private void Awake()
     {
         if (weaponMount == null)
@@ -25,19 +39,28 @@ public class WeaponManager : MonoBehaviour
             weaponMount = transform;
         }
 
-        for (int i = weapons.Count - 1; i >= 0; i--)
+        if (player == null)
         {
-            Weapon weapon = weapons[i];
+            player = weaponMount.GetComponentInParent<PlayerPresenter>();
+        }
 
-            if (weapon == null || !InitializeWeapon(weapon))
+        var initialWeapons = new List<Weapon>(weapons);
+        weapons.Clear();
+        foreach (Weapon weapon in initialWeapons)
+        {
+            if (weapon == null || weapons.Contains(weapon))
             {
-                weapons.RemoveAt(i);
+                continue;
+            }
+            if (!AddWeapon(weapon))
+            {
+                weapon.Unequip();
             }
         }
 
         foreach (WeaponData weaponData in startingWeapons)
         {
-            if (weaponData != null)
+            if (weaponData != null && !HasWeapon(weaponData))
             {
                 EquipWeapon(weaponData);
             }
@@ -73,6 +96,18 @@ public class WeaponManager : MonoBehaviour
             return null;
         }
 
+        if (HasWeapon(weaponData))
+        {
+            Debug.LogWarning($"{weaponData.name}は既に装備しています。", this);
+            return null;
+        }
+
+        if (!HasCapacity)
+        {
+            Debug.LogWarning($"武器所持数が上限（{MaxWeaponCount}）です。", this);
+            return null;
+        }
+
         Weapon weapon = Instantiate(weaponData.WeaponPrefab, weaponMount);
 
         if (!AddWeapon(weapon, weaponData))
@@ -92,11 +127,59 @@ public class WeaponManager : MonoBehaviour
         if (weapon == null || weapons.Contains(weapon))
             return false;
 
+        WeaponData targetData = weaponData != null ? weaponData : weapon.WeaponData;
+        if (HasWeapon(targetData))
+        {
+            Debug.LogWarning($"{targetData.name}は既に装備しています。", this);
+            return false;
+        }
+
+        if (!HasCapacity)
+        {
+            Debug.LogWarning($"武器所持数が上限（{MaxWeaponCount}）です。", this);
+            return false;
+        }
+
         if (!InitializeWeapon(weapon, weaponData))
             return false;
 
         weapons.Add(weapon);
         return true;
+    }
+
+    /// <summary>同じWeaponDataを使う武器は、1つだけ所持できる。</summary>
+    public bool HasWeapon(WeaponData weaponData)
+    {
+        if (weaponData == null)
+        {
+            return false;
+        }
+        foreach (Weapon weapon in weapons)
+        {
+            if (weapon != null && weapon.WeaponData == weaponData)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Weapon GetWeapon(WeaponData weaponData)
+    {
+        if (weaponData == null)
+        {
+            return null;
+        }
+
+        foreach (Weapon weapon in weapons)
+        {
+            if (weapon != null && weapon.WeaponData == weaponData)
+            {
+                return weapon;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -133,7 +216,7 @@ public class WeaponManager : MonoBehaviour
     {
         weapon.Equip(weaponMount);
 
-        if (weapon.Initialize(weaponData))
+        if (weapon.Initialize(weaponData, player != null ? player.Model : null, objectPool))
             return true;
 
         weapon.Unequip();
