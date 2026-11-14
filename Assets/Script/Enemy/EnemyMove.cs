@@ -4,7 +4,7 @@ using UnityEngine;
 /// 敵の移動
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
-public sealed class EnemyMove : MonoBehaviour
+public class EnemyMove : MonoBehaviour
 {
     [SerializeField, Min(0f)]
     private float moveSpeed = 2f;

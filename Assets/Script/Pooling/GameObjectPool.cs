@@ -56,10 +56,10 @@ public sealed class GameObjectPool : MonoBehaviour
     /// <summary>
     /// 指定したプレハブを出現させる
     /// </summary>
-    /// <param name="prefab"></param>
-    /// <param name="position"></param>
-    /// <param name="rotation"></param>
-    /// <returns></returns>
+    /// <param name="prefab">出現させたいプレハブ</param>
+    /// <param name="position">出現位置</param>
+    /// <param name="rotation">出現回転</param>
+    /// <returns>出現したインスタンス</returns>
     public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)
     {
         if (!IsReady || !ValidatePrefab(prefab))

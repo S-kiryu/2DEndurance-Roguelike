@@ -61,6 +61,9 @@ public sealed class GameSessionManager : MonoBehaviour
         RefreshUI();
     }
 
+    /// <summary>
+    /// セッションをリセットする関数
+    /// </summary>
     public void RestartRun()
     {
         if (isLeavingScene || !IsGameOver) return;
@@ -69,6 +72,9 @@ public sealed class GameSessionManager : MonoBehaviour
         SceneManager.LoadScene(gameObject.scene.path);
     }
 
+    /// <summary>
+    /// タイトルに戻る関数
+    /// </summary>
     public void ReturnToTitle()
     {
         if (isLeavingScene || !IsGameOver) return;
@@ -93,6 +99,9 @@ public sealed class GameSessionManager : MonoBehaviour
         GameOver?.Invoke();
     }
 
+    /// <summary>
+    /// UIを更新する関数
+    /// </summary>
     private void RefreshUI()
     {
         if (sessionUI == null || player == null)

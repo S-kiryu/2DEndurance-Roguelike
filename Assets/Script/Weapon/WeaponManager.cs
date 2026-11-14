@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -27,6 +28,9 @@ public class WeaponManager : MonoBehaviour
     [Header("所持上限")]
     [SerializeField, Min(1)]
     private int maxWeaponCount = 6;
+
+    public event Action<Weapon> WeaponAdded;
+    public event Action<Weapon> WeaponRemoved;
 
     public IReadOnlyList<Weapon> Weapons => weapons;
     public int MaxWeaponCount => Mathf.Max(1, maxWeaponCount);
@@ -69,6 +73,7 @@ public class WeaponManager : MonoBehaviour
 
     private void Update()
     {
+        RefreshPlayerAppearance();
         float deltaTime = Time.deltaTime;
 
         for (int i = weapons.Count - 1; i >= 0; i--)
@@ -78,6 +83,7 @@ public class WeaponManager : MonoBehaviour
             if (weapon == null)
             {
                 weapons.RemoveAt(i);
+                WeaponRemoved?.Invoke(weapon);
                 continue;
             }
 
@@ -144,6 +150,8 @@ public class WeaponManager : MonoBehaviour
             return false;
 
         weapons.Add(weapon);
+        RefreshPlayerAppearance();
+        WeaponAdded?.Invoke(weapon);
         return true;
     }
 
@@ -197,12 +205,14 @@ public class WeaponManager : MonoBehaviour
             return false;
 
         weapon.Unequip();
+        RefreshPlayerAppearance();
 
         if (destroyInstance)
         {
             Destroy(weapon.gameObject);
         }
 
+        WeaponRemoved?.Invoke(weapon);
         return true;
     }
 
@@ -221,5 +231,22 @@ public class WeaponManager : MonoBehaviour
 
         weapon.Unequip();
         return false;
+    }
+
+    private void RefreshPlayerAppearance()
+    {
+        PlayerView view = player != null ? player.GetComponent<PlayerView>() : null;
+        if (view == null) return;
+        bool hasNata = false;
+        foreach (Weapon weapon in weapons)
+        {
+            if (weapon != null && weapon.isActiveAndEnabled &&
+                weapon.WeaponData is SwordData sword && sword.UsePlayerAnimation)
+            {
+                hasNata = true;
+                break;
+            }
+        }
+        view.SetNataEquipped(hasNata);
     }
 }

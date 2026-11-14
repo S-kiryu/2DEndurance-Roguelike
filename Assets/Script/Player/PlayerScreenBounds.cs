@@ -12,9 +12,26 @@ public sealed class PlayerScreenBounds : MonoBehaviour
     [SerializeField, Min(0f)] private float padding = 0.02f;
 
     private Rigidbody2D body;
+    private Vector2 screenMin;
+    private Vector2 screenMax;
 
-    private void Awake()
+    private void Start()
     {
+        Camera screenCamera = targetCamera != null ? targetCamera : Camera.main;
+        if (screenCamera == null)
+        {
+            enabled = false;
+            return;
+        }
+
+        // 固定の2Dカメラなので、画面端は開始時に一度だけ求める。
+        float halfHeight = screenCamera.orthographicSize;
+        Vector2 halfSize = new Vector2(halfHeight * screenCamera.aspect, halfHeight);
+        Vector2 center = screenCamera.transform.position;
+        Vector2 margin = Vector2.one * padding;
+        screenMin = center - halfSize + margin;
+        screenMax = center + halfSize - margin;
+
         body = GetComponent<Rigidbody2D>();
         if (bodyCollider == null)
         {
@@ -28,25 +45,7 @@ public sealed class PlayerScreenBounds : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (targetCamera == null)
-        {
-            targetCamera = Camera.main;
-        }
-        if (targetCamera == null)
-        {
-            return;
-        }
-
         Vector3 position = transform.position;
-        float depth = targetCamera.WorldToViewportPoint(position).z;
-        if (depth <= 0f)
-        {
-            return;
-        }
-
-        // 毎フレーム計算し、解像度・アスペクト比・ズームの変更にも追従する。
-        Vector3 bottomLeft = targetCamera.ViewportToWorldPoint(new Vector3(0f, 0f, depth));
-        Vector3 topRight = targetCamera.ViewportToWorldPoint(new Vector3(1f, 1f, depth));
         Bounds bounds = new Bounds(position, Vector3.zero);
         if (bodyCollider != null && bodyCollider.enabled)
         {
@@ -57,24 +56,22 @@ public sealed class PlayerScreenBounds : MonoBehaviour
             bounds.Encapsulate(bodyRenderer.bounds);
         }
 
-        float minX = bottomLeft.x + position.x - bounds.min.x + padding;
-        float maxX = topRight.x - bounds.max.x + position.x - padding;
-        float minY = bottomLeft.y + position.y - bounds.min.y + padding;
-        float maxY = topRight.y - bounds.max.y + position.y - padding;
+        Vector2 min = screenMin + (Vector2)(position - bounds.min);
+        Vector2 max = screenMax - (Vector2)(bounds.max - position);
         Vector2 clamped = new Vector2(
-            ClampAxis(position.x, minX, maxX),
-            ClampAxis(position.y, minY, maxY)
+            ClampAxis(position.x, min.x, max.x),
+            ClampAxis(position.y, min.y, max.y)
         );
 
         Vector2 velocity = body.linearVelocity;
         // 端に向かう速度だけを止め、内側への移動・落下は妨げない。
-        if ((position.x <= minX && velocity.x < 0f) ||
-            (position.x >= maxX && velocity.x > 0f))
+        if ((position.x <= min.x && velocity.x < 0f) ||
+            (position.x >= max.x && velocity.x > 0f))
         {
             velocity.x = 0f;
         }
-        if ((position.y <= minY && velocity.y < 0f) ||
-            (position.y >= maxY && velocity.y > 0f))
+        if ((position.y <= min.y && velocity.y < 0f) ||
+            (position.y >= max.y && velocity.y > 0f))
         {
             velocity.y = 0f;
         }

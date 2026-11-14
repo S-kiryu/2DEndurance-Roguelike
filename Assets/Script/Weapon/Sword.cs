@@ -19,6 +19,8 @@ public class Sword : Weapon
     private SwordData swordData;
     private Quaternion idleRotation;
     private bool isAttacking;
+    private PlayerView ownerView;
+    private bool dealtPlayerAttackDamage;
 
     private void Awake()
     {
@@ -40,6 +42,7 @@ public class Sword : Weapon
     protected override void OnDisable()
     {
         base.OnDisable();
+        if (ownerView != null) ownerView.CancelNataAttack(this);
         isAttacking = false;
 
         if (animator != null)
@@ -63,6 +66,7 @@ public class Sword : Weapon
     protected override void OnInitialized()
     {
         swordData = (SwordData)Data;
+        ownerView = GetComponentInParent<PlayerView>();
     }
 
     /// <summary>
@@ -71,11 +75,23 @@ public class Sword : Weapon
     /// <returns></returns>
     protected override bool TryAttack()
     {
-        if (isAttacking || animator == null || !HasTargetInRange())
+        if (isAttacking || !HasTargetInRange())
         {
             return false;
         }
 
+        if (swordData.UsePlayerAnimation)
+        {
+            float speed = (OwnerStats?.AttackSpeedMultiplier ?? 1f) * WeaponAttackSpeedMultiplier;
+            if (ownerView == null || !ownerView.TryPlayNataAttack(this, swordData.PlayerAttackClip, speed))
+                return false;
+            isAttacking = true;
+            dealtPlayerAttackDamage = false;
+            NotifyAttackStarted();
+            return true;
+        }
+
+        if (animator == null) return false;
         isAttacking = true;
         NotifyAttackStarted();
         SetVisualVisible(true);
@@ -91,6 +107,11 @@ public class Sword : Weapon
     {
         if (isAttacking)
         {
+            if (swordData.UsePlayerAnimation)
+            {
+                if (dealtPlayerAttackDamage) return;
+                dealtPlayerAttackDamage = true;
+            }
             int hitCount = 1 + AdditionalHits;
 
             for (int i = 0; i < hitCount; i++)

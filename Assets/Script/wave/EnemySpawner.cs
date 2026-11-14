@@ -25,6 +25,12 @@ public sealed class EnemySpawner : MonoBehaviour
         return Spawn(enemyPrefab, EnemyStatScale.Default);
     }
 
+    /// <summary>
+    /// スポーン処理
+    /// </summary>
+    /// <param name="enemyPrefab"></param>
+    /// <param name="statScale"></param>
+    /// <returns></returns>
     public WaveEnemyHandle Spawn(GameObject enemyPrefab, EnemyStatScale statScale)
     {
         if (!IsReady)

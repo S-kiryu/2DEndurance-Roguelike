@@ -5,6 +5,7 @@ using UnityEngine;
 /// <summary>適用先まで確定した候補から、重複設定に従って最大3つを抽選する。</summary>
 public sealed class SkillSelectionManager : MonoBehaviour
 {
+    //選択肢の数
     public const int ChoiceCount = 3;
 
     [SerializeField] private PlayerPresenter player;

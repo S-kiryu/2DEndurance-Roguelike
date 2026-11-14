@@ -5,11 +5,11 @@
 public interface IPoolable
 {
     /// <summary>
-    /// スポーン処置
+    /// スポーン時に呼ばれる処理
     /// </summary>
     void OnPoolSpawned();
     /// <summary>
-    /// 削除処理
+    /// プールに戻る際に呼ばれる処理
     /// </summary>
     void OnPoolDespawned();
 }

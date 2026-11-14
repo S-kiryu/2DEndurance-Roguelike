@@ -53,6 +53,7 @@ public sealed class EnemyCatalog : ScriptableObject
 
     private void OnValidate()
     {
+        // 入れ間違いなどがないかを検証する
         var ids = new HashSet<string>();
         foreach (EnemyCatalogEntry enemy in enemies)
         {

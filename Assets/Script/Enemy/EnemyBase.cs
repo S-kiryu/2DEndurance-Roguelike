@@ -75,16 +75,6 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
         StopAllCoroutines();
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        TryDealContactDamage(collision.collider);
-    }
-
-    private void OnCollisionStay2D(Collision2D collision)
-    {
-        TryDealContactDamage(collision.collider);
-    }
-
     private void OnTriggerEnter2D(Collider2D other)
     {
         TryDealContactDamage(other);
@@ -117,9 +107,9 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
     }
 
     /// <summary>
-    /// 攻撃処理
+    /// 攻撃を受ける関数
     /// </summary>
-    /// <param name="amount"></param>
+    /// <param name="amount">攻撃力</param>
     public virtual void TakeDamage(int amount)
     {
         if (!isActiveAndEnabled || amount <= 0 || CurrentHP <= 0)

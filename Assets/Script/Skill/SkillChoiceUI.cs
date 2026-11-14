@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,9 +9,9 @@ using UnityEngine.UI;
 public sealed class SkillChoiceUI : MonoBehaviour
 {
     [SerializeField] private Button button;
-    [SerializeField] private Text nameText;
-    [SerializeField] private Text descriptionText;
-    [SerializeField] private Text categoryText;
+    [SerializeField] private TMP_Text nameText;
+    [SerializeField] private TMP_Text descriptionText;
+    [SerializeField] private TMP_Text categoryText;
     [SerializeField] private Image iconImage;
 
     private int choiceIndex;

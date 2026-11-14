@@ -7,6 +7,7 @@ using UnityEngine;
 [Serializable]
 public sealed class PlayerModel
 {
+    /// <summary>死亡時に発火するイベント</summary>
     public event Action Died;
 
     public int MaxHealth => _maxHealth + maxHealthBonus;

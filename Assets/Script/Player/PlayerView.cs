@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 /// <summary>
 /// Playerの見た目を制御する
@@ -22,6 +21,96 @@ public sealed class PlayerView : MonoBehaviour
 
     private Color originalColor;
     private Coroutine damageFlash;
+    private bool nataEquipped;
+    private Sword attackingNata;
+    private Coroutine nataAttackRoutine;
+    private AnimatorOverrideController nataController;
+    private RuntimeAnimatorController originalController;
+    private static readonly int NataEquipped = Animator.StringToHash("NataEquipped");
+    private static readonly int NataAttack = Animator.StringToHash("Base Layer.NataAttack");
+    private static readonly int NataAttackSpeed = Animator.StringToHash("NataAttackSpeed");
+
+    public void SetNataEquipped(bool equipped)
+    {
+        if (animator == null) return;
+        nataEquipped = equipped;
+        animator.SetBool(NataEquipped, equipped);
+        if (!equipped && attackingNata != null) FinishNataAttack();
+    }
+
+    public bool TryPlayNataAttack(Sword weapon, AnimationClip clip, float speed)
+    {
+        if (!isActiveAndEnabled || !nataEquipped || attackingNata != null ||
+            animator == null || !animator.isActiveAndEnabled || clip == null ||
+            !animator.HasState(0, NataAttack)) return false;
+
+        if (nataController == null)
+        {
+            originalController = animator.runtimeAnimatorController;
+            nataController = new AnimatorOverrideController(originalController);
+            animator.runtimeAnimatorController = nataController;
+        }
+        nataController["NataAttackPlaceholder"] = clip;
+        animator.SetBool(NataEquipped, nataEquipped);
+        attackingNata = weapon;
+        speed = Mathf.Max(0.01f, speed);
+        animator.SetFloat(NataAttackSpeed, speed);
+        animator.Play(NataAttack, 0, 0f);
+        nataAttackRoutine = StartCoroutine(WaitForNataAttack());
+        return true;
+    }
+
+    private IEnumerator WaitForNataAttack()
+    {
+        // Animatorの評価後に終了を確認し、最後のフレームの命中イベントも処理する。
+        yield return null;
+        while (animator != null && animator.isActiveAndEnabled)
+        {
+            AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+            if (state.fullPathHash != NataAttack || state.normalizedTime >= 1f) break;
+            yield return null;
+        }
+        nataAttackRoutine = null;
+        FinishNataAttack();
+    }
+
+    // PlayerのAnimatorと同じGameObjectへ送られるAnimation Event。
+    public void DealNataDamage()
+    {
+        if (attackingNata != null && attackingNata.isActiveAndEnabled)
+            attackingNata.DealAttackDamage();
+    }
+
+    public void FinishNataAttack()
+    {
+        if (object.ReferenceEquals(attackingNata, null) && nataAttackRoutine == null) return;
+        if (nataAttackRoutine != null) StopCoroutine(nataAttackRoutine);
+        nataAttackRoutine = null;
+        Sword weapon = attackingNata;
+        attackingNata = null;
+        if (weapon != null) weapon.FinishAttack();
+        if (animator != null && animator.isActiveAndEnabled)
+        {
+            bool moving = animator.GetBool("Move");
+            bool backwards = animator.GetFloat("Direction") > 0f;
+            string state = nataEquipped
+                ? (moving ? (backwards ? "NataPlayerMoveBack" : "NataPlayerMove") : "NataIdol")
+                : (moving ? (backwards ? "PlayerMoveBack" : "PlayerMove") : "Idol");
+            animator.Play("Base Layer." + state, 0, 0f);
+        }
+    }
+
+    public void CancelNataAttack(Sword weapon)
+    {
+        if (attackingNata == weapon) FinishNataAttack();
+    }
+
+    private void OnDestroy()
+    {
+        if (nataController == null) return;
+        if (animator != null) animator.runtimeAnimatorController = originalController;
+        Destroy(nataController);
+    }
 
     private void Awake()
     {
@@ -39,6 +128,7 @@ public sealed class PlayerView : MonoBehaviour
 
     private void OnDisable()
     {
+        if (attackingNata != null) FinishNataAttack();
         if (damageFlash == null)
         {
             return;

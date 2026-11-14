@@ -6,8 +6,8 @@ using UnityEngine.EventSystems;
 public sealed class SkillSelectionUI : MonoBehaviour
 {
     [Header("シーンのCanvas内の表示先")]
-    [SerializeField] private GameObject selectionPanel;
-    [SerializeField] private Transform choicesRoot;
+    [SerializeField,Tooltip("選択肢が表示されるパネル")] private GameObject selectionPanel;
+    [SerializeField,Tooltip("選択肢が生成される親オブジェクト")] private Transform choicesRoot;
 
     [Header("生成する選択肢プレハブ")]
     [SerializeField] private SkillChoiceUI choicePrefab;
