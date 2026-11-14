@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14773bc9eb7448289f7a158f030943b8, type: 3}
+  m_Name: NataData
+  m_EditorClassIdentifier: Assembly-CSharp::SwordData
+  stats:
+    WeaponName: "\u30CA\u30BF"
+    Icon: {fileID: 0}
+    Description: 
+    Damage: 20
+    CriticalRate: 0.15
+    CriticalMultiplier: 2
+    AttackInterval: 0.65
+    MaxEnchantLevel: 5
+  weaponPrefab: {fileID: 3003, guid: a840fdf0edce41dc9a92b090dea1a1ea, type: 3}
+  upgradeStages:
+  - starLevel: 2
+    displayName: "\u30CA\u30BF \u26052"
+    description: "\u653B\u6483\u529B +25%"
+    damageMultiplierBonus: 0.25
+    attackSpeedMultiplierBonus: 0
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0
+    projectileSpeedMultiplierBonus: 0
+    penetrationBonus: 0
+    effects: []
+  - starLevel: 3
+    displayName: "\u30CA\u30BF \u26053"
+    description: "\u653B\u6483\u901F\u5EA6 +20%"
+    damageMultiplierBonus: 0
+    attackSpeedMultiplierBonus: 0.2
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0
+    projectileSpeedMultiplierBonus: 0
+    penetrationBonus: 0
+    effects: []
+  - starLevel: 4
+    displayName: "\u30CA\u30BF \u26054"
+    description: "\u653B\u6483\u7BC4\u56F2 +30%"
+    damageMultiplierBonus: 0
+    attackSpeedMultiplierBonus: 0
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0.3
+    projectileSpeedMultiplierBonus: 0
+    penetrationBonus: 0
+    effects: []
+  - starLevel: 5
+    displayName: "\u30CA\u30BF \u26055"
+    description: "\u56FA\u6709\u52B9\u679C: \u547D\u4E2D\u6642\u306B\u8FFD\u52A0\u30671\u56DE\u30C0\u30E1\u30FC\u30B8"
+    damageMultiplierBonus: 0
+    attackSpeedMultiplierBonus: 0
+    criticalRateBonus: 0
+    rangeMultiplierBonus: 0
+    projectileSpeedMultiplierBonus: 0
+    penetrationBonus: 0
+    effects:
+    - {fileID: 11400000, guid: 73af781ea1ef4b5884c5ec4b21010312, type: 2}
+  postMaxDamageMultiplierBonus: 0.15
+  usePlayerAnimation: 1
+  playerAttackClip: {fileID: 7400000, guid: 80081b5c999742d09eac4cc2f5199a09, type: 2}
+  attackRange: 2.2
+  attackAngle: 110
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 0
