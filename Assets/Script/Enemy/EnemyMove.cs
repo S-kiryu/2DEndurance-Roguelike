@@ -8,6 +8,8 @@ public class EnemyMove : MonoBehaviour
 {
     [SerializeField, Min(0f)]
     private float moveSpeed = 2f;
+    [SerializeField] private bool spriteFacesLeft;
+    private SpriteRenderer spriteRenderer;
 
     private Rigidbody2D body;
     private Transform player;
@@ -15,6 +17,7 @@ public class EnemyMove : MonoBehaviour
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     public void Initialize(GameObject playerObject, float speed)
@@ -54,7 +57,7 @@ public class EnemyMove : MonoBehaviour
     /// 指定した位置まで移動する
     /// </summary>
     /// <param name="pos"></param>
-    private void Move(Transform pos) 
+    private void Move(Transform pos)
     {
         float difference =
             pos.position.x - transform.position.x;
@@ -65,6 +68,13 @@ public class EnemyMove : MonoBehaviour
             direction * moveSpeed,
             body.linearVelocity.y
         );
+
+        if (spriteRenderer != null && difference != 0f)
+        {
+            spriteRenderer.flipX = spriteFacesLeft
+                ? direction > 0f
+                : direction < 0f;
+        }
     }
 
     /// <summary>

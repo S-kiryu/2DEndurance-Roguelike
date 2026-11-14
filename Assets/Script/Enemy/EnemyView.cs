@@ -6,6 +6,7 @@ using UnityEngine;
 public sealed class EnemyView : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer damageRenderer;
+    [SerializeField] private SpriteRenderer damageFlashOverlay;
     [SerializeField, Min(0.01f)] private float damageFlashDuration = 0.15f;
 
     private Color originalColor;
@@ -38,10 +39,29 @@ public sealed class EnemyView : MonoBehaviour
 
     private IEnumerator FlashDamage()
     {
-        damageRenderer.color = new Color(1f, 0f, 0f, originalColor.a);
+        if (damageFlashOverlay == null)
+        {
+            damageRenderer.color = new Color(1f, 0f, 0f, originalColor.a);
+        }
         yield return new WaitForSeconds(damageFlashDuration);
-        RestoreColor();
+        ClearDamageFlash();
         damageFlash = null;
+    }
+
+    private void LateUpdate()
+    {
+        if (damageFlash == null || damageFlashOverlay == null || damageRenderer == null)
+        {
+            return;
+        }
+
+        // Animatorが更新したコマと移動で変わった向きを描画前に反映する。
+        damageFlashOverlay.sprite = damageRenderer.sprite;
+        damageFlashOverlay.flipX = damageRenderer.flipX;
+        damageFlashOverlay.flipY = damageRenderer.flipY;
+        Color overlayColor = damageFlashOverlay.color;
+        overlayColor.a = damageRenderer.color.a;
+        damageFlashOverlay.color = overlayColor;
     }
 
     private void OnDisable()
@@ -52,12 +72,18 @@ public sealed class EnemyView : MonoBehaviour
             damageFlash = null;
         }
         // プールに戻った個体が、赤いまま再出現しないようにする。
-        RestoreColor();
+        ClearDamageFlash();
     }
 
-    private void RestoreColor()
+    private void ClearDamageFlash()
     {
-        if (damageRenderer != null)
+        if (damageFlashOverlay != null)
+        {
+            Color overlayColor = damageFlashOverlay.color;
+            overlayColor.a = 0f;
+            damageFlashOverlay.color = overlayColor;
+        }
+        else if (damageRenderer != null)
         {
             damageRenderer.color = originalColor;
         }
