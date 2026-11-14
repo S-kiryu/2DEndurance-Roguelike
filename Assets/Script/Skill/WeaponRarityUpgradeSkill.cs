@@ -6,6 +6,7 @@ public sealed class WeaponRarityUpgradeSkill : SkillBase
 {
     public override SkillCategory Category => SkillCategory.WeaponRarityUpgrade;
 
+    /// <summary>強化できる所持武器があるか調べる。</summary>
     public override bool CanApply(SkillContext context)
     {
         if (context == null || context.Weapons == null)
@@ -24,6 +25,7 @@ public sealed class WeaponRarityUpgradeSkill : SkillBase
         return false;
     }
 
+    /// <summary>所持武器ごとに、次の星段階か上限到達後の攻撃強化を候補に加える。</summary>
     public override void BuildCandidates(SkillContext context, List<SkillCandidate> candidates)
     {
         if (context == null || context.Weapons == null)
@@ -53,7 +55,8 @@ public sealed class WeaponRarityUpgradeSkill : SkillBase
                     stageName,
                     description,
                     $"weapon-star:{weapon.WeaponData.GetEntityId()}:{stage.StarLevel}",
-                    weapon
+                    weapon,
+                    offeredStarLevel: stage.StarLevel
                 ));
             }
             else
@@ -70,6 +73,7 @@ public sealed class WeaponRarityUpgradeSkill : SkillBase
         }
     }
 
+    /// <summary>強化できる所持武器を先頭から探して適用する。</summary>
     public override bool TryApply(SkillContext context)
     {
         if (context == null || context.Weapons == null)
@@ -88,6 +92,7 @@ public sealed class WeaponRarityUpgradeSkill : SkillBase
         return false;
     }
 
+    /// <summary>候補の対象武器をまだ所持している場合に強化する。</summary>
     internal override bool TryApplyCandidate(SkillContext context, SkillCandidate candidate)
     {
         if (context == null || context.Weapons == null || candidate == null ||
@@ -109,11 +114,13 @@ public sealed class WeaponRarityUpgradeSkill : SkillBase
         return isOwned && TryUpgrade(candidate.TargetWeapon);
     }
 
+    /// <summary>武器に適用できる強化があるか調べる。</summary>
     private static bool CanUpgrade(Weapon weapon)
     {
         return weapon != null && (weapon.CanUpgradeStar || weapon.CanUpgradePostMaxDamage);
     }
 
+    /// <summary>武器の現在の星段階に対応する強化を適用する。</summary>
     private static bool TryUpgrade(Weapon weapon)
     {
         if (weapon == null)

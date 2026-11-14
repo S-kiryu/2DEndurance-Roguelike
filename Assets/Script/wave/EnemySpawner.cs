@@ -47,9 +47,12 @@ public sealed class EnemySpawner : MonoBehaviour
 
         Transform spawnPoint = GetRandomSpawnPoint();
 
+        Vector3 spawnPosition = spawnPoint.position;
+        spawnPosition.y = enemyPrefab.transform.position.y;
+
         GameObject enemy = objectPool.Spawn(
             enemyPrefab,
-            spawnPoint.position,
+            spawnPosition,
             spawnPoint.rotation
         );
 

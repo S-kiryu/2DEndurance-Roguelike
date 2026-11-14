@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GunData
   stats:
     WeaponName: Test Gun
-    Icon: {fileID: 0}
+    Icon: {fileID: 21300000, guid: d8f3451386fdb4a418b6b7c3a8344cb0, type: 3}
     Description: 
     Damage: 10
     CriticalRate: 0.1

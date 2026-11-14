@@ -6,9 +6,9 @@ using UnityEngine;
 /// </summary>
 public enum SkillCategory
 {
-    Weapon,
-    SelfEnhancement,
-    WeaponRarityUpgrade
+    Weapon = 0,
+    SelfEnhancement = 1,
+    WeaponRarityUpgrade = 2
 }
 
 /// <summary>
@@ -19,6 +19,7 @@ public sealed class SkillContext
     public PlayerPresenter Player { get; }
     public WeaponManager Weapons { get; }
 
+    /// <summary>今回のスキルが参照するプレイヤーと所持武器を保持する。</summary>
     public SkillContext(PlayerPresenter player, WeaponManager weapons)
     {
         Player = player;
@@ -36,22 +37,33 @@ public sealed class SkillCandidate
     public string IdentityKey { get; }
     public bool AllowDuplicateInSameSelection => Skill.AllowDuplicateInSameSelection;
     public SkillCategory Category => Skill.Category;
-    public Sprite Icon => Skill.Icon;
+    public Sprite Icon { get; }
+    public int CurrentStarLevel { get; }
+    public int OfferedStarLevel { get; }
 
+    /// <summary>抽選時に確定した対象と、カードに表示する武器の状態を保持する。</summary>
     public SkillCandidate(
         SkillBase skill,
         string displayName,
         string description,
         string identityKey,
-        Weapon targetWeapon = null)
+        Weapon targetWeapon = null,
+        Sprite weaponIcon = null,
+        int offeredStarLevel = 0)
     {
         Skill = skill;
         DisplayName = displayName;
         Description = description;
         IdentityKey = identityKey;
         TargetWeapon = targetWeapon;
+        Sprite defaultIcon = targetWeapon != null ? targetWeapon.WeaponData?.Stats.Icon : weaponIcon;
+        Sprite skillIcon = skill != null ? skill.Icon : null;
+        Icon = skillIcon != null ? skillIcon : defaultIcon;
+        CurrentStarLevel = targetWeapon != null ? targetWeapon.StarLevel : 0;
+        OfferedStarLevel = offeredStarLevel;
     }
 
+    /// <summary>確定した対象にこの候補を適用する。</summary>
     public bool TryApply(SkillContext context)
     {
         return Skill != null && Skill.TryApplyCandidate(context, this);
@@ -73,6 +85,7 @@ public abstract class SkillBase : ScriptableObject
     public bool AllowDuplicateInSameSelection => allowDuplicateInSameSelection;
     public abstract SkillCategory Category { get; }
 
+    /// <summary>現在の状態でスキルを適用できるか調べる。</summary>
     public abstract bool CanApply(SkillContext context);
 
     /// <summary>適用直前にも条件を再確認し、成功したときだけtrueを返す。</summary>
@@ -92,11 +105,13 @@ public abstract class SkillBase : ScriptableObject
         }
     }
 
+    /// <summary>同じ内容の候補を判別するキーを返す。</summary>
     public virtual string GetSelectionIdentity(SkillContext context)
     {
         return $"{GetType().FullName}|{DisplayName}|{Description}";
     }
 
+    /// <summary>対象の指定を必要としない候補を適用する。</summary>
     internal virtual bool TryApplyCandidate(SkillContext context, SkillCandidate candidate)
     {
         return TryApply(context);

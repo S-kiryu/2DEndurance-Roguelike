@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: PrototypeSelfEnhancement
   m_EditorClassIdentifier: Assembly-CSharp::SelfEnhancementSkill
   displayName: "\u8EAB\u4F53\u5F37\u5316"
-  description: "\u6700\u5927HP +20\u3001\u79FB\u52D5\u901F\u5EA6 +1"
-  icon: {fileID: 0}
+  description: "\u653B\u6483\u529B20UP"
+  icon: {fileID: 21300000, guid: 7832af3322271b24e8cbda9adc5682a2, type: 3}
   allowDuplicateInSameSelection: 0
-  additionalMaxHealth: 20
-  additionalMoveSpeed: 1
-  additionalAttackMultiplier: 0
+  additionalMaxHealth: 0
+  additionalMoveSpeed: 0
+  additionalAttackMultiplier: 20
   additionalAttackSpeedMultiplier: 0
   additionalCriticalRate: 0

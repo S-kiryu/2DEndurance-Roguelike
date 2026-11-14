@@ -15,3 +15,5 @@ MonoBehaviour:
   enemies:
   - id: "\u30C6\u30B9\u30C8\u7528\u306E\u6575"
     prefab: {fileID: 8037015100712895834, guid: 6fff6a1ed71088a459f366288d8e2458, type: 3}
+  - id: "\u30B7\u30B7\u30CA\u30A4\u30E9"
+    prefab: {fileID: 8037015100712895834, guid: 57f92a476ccb44a4cbee936ba1928507, type: 3}

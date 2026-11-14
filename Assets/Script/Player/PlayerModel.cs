@@ -104,7 +104,9 @@ public sealed class PlayerModel
         );
     }
 
-    /// <summary>このラン中だけ累積する自己強化。最大HPの増加分だけ現在HPも回復する。</summary>
+    /// <summary>
+    /// このラン中だけ累積する自己強化。最大HPの増加分だけ現在HPも回復する。
+    /// </summary>
     public bool ApplyEnhancement(
         int additionalMaxHealth,
         float additionalMoveSpeed,

@@ -6,7 +6,10 @@ using UnityEngine.InputSystem;
 /// </summary>
 public sealed class PlayerInputReader : MonoBehaviour
 {
-    /// <summary>ジャンプ入力を消費する</summary>
+    /// <summary>
+    /// ジャンプできるか
+    /// </summary>
+    /// <returns></returns>
     public bool ConsumeJump()
     {
         if (Time.timeScale <= 0f)
@@ -24,14 +27,15 @@ public sealed class PlayerInputReader : MonoBehaviour
         return true;
     }
 
-    [SerializeField]
+    [SerializeField,Tooltip("左移動の入力アクション")]
     private InputActionReference moveLeftAction;
 
-    [SerializeField]
+    [SerializeField,Tooltip("右移動の入力アクション")]
     private InputActionReference moveRightAction;
 
-    [SerializeField]
+    [SerializeField,Tooltip("ジャンプの入力アクション")]
     private InputActionReference jumpAction;
+
     private bool leftPressed;
     private bool rightPressed;
     private bool jumpRequested;

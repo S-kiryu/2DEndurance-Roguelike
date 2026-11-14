@@ -18,10 +18,10 @@ MonoBehaviour:
   spawnTiming: 0
   waves:
   - enemies:
-    - enemyId: "\u30C6\u30B9\u30C8\u7528\u306E\u6575"
-      count: 10
+    - enemyId: "\u30B7\u30B7\u30CA\u30A4\u30E9"
+      count: 5
   endlessGrowth:
-  - enemyId: "\u30C6\u30B9\u30C8\u7528\u306E\u6575"
+  - enemyId: "\u30B7\u30B7\u30CA\u30A4\u30E9"
     increaseCount: 1
     increaseEveryWaves: 1
   endlessStatGrowth:
