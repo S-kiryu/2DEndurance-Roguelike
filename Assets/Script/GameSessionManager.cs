@@ -17,6 +17,7 @@ public sealed class GameSessionManager : MonoBehaviour
     public bool IsGameOver { get; private set; }
 
     private bool isLeavingScene;
+    private float timeScaleBeforeSkillSelection;
 
     private void Awake()
     {
@@ -59,6 +60,26 @@ public sealed class GameSessionManager : MonoBehaviour
         }
 
         RefreshUI();
+    }
+
+    internal bool TryPauseForSkillSelection()
+    {
+        if (!isActiveAndEnabled || IsGameOver || Time.timeScale <= 0f)
+        {
+            return false;
+        }
+
+        timeScaleBeforeSkillSelection = Time.timeScale;
+        Time.timeScale = 0f;
+        return true;
+    }
+
+    internal void ResumeAfterSkillSelection()
+    {
+        if (!IsGameOver)
+        {
+            Time.timeScale = timeScaleBeforeSkillSelection;
+        }
     }
 
     /// <summary>

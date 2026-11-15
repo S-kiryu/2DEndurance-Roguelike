@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
@@ -19,6 +20,25 @@ public sealed class SelfEnhancementSkill : SkillBase
     [SerializeField, Min(0f)] private float additionalCriticalRate;
 
     public override SkillCategory Category => SkillCategory.SelfEnhancement;
+
+    public override string Description
+    {
+        get
+        {
+            var bonuses = new List<string>();
+            if (additionalMaxHealth > 0)
+                bonuses.Add($"最大HP +{additionalMaxHealth}");
+            if (additionalMoveSpeed > 0f)
+                bonuses.Add($"移動速度 +{additionalMoveSpeed:0.##}");
+            if (additionalAttackMultiplier > 0f)
+                bonuses.Add($"攻撃力 +{additionalAttackMultiplier * 100f:0.##}%");
+            if (additionalAttackSpeedMultiplier > 0f)
+                bonuses.Add($"攻撃速度 +{additionalAttackSpeedMultiplier * 100f:0.##}%");
+            if (additionalCriticalRate > 0f)
+                bonuses.Add($"クリティカル率 +{additionalCriticalRate * 100f:0.##}ポイント");
+            return string.Join("\n", bonuses);
+        }
+    }
 
     public override bool CanApply(SkillContext context)
     {

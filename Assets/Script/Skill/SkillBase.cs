@@ -80,7 +80,7 @@ public abstract class SkillBase : ScriptableObject
     [SerializeField] private bool allowDuplicateInSameSelection;
 
     public string DisplayName => displayName;
-    public string Description => description;
+    public virtual string Description => description;
     public Sprite Icon => icon;
     public bool AllowDuplicateInSameSelection => allowDuplicateInSameSelection;
     public abstract SkillCategory Category { get; }

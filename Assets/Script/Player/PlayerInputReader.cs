@@ -7,9 +7,8 @@ using UnityEngine.InputSystem;
 public sealed class PlayerInputReader : MonoBehaviour
 {
     /// <summary>
-    /// ジャンプできるか
+    /// 保留中のジャンプ入力を一度だけ取り出す。停止中は入力を破棄する。
     /// </summary>
-    /// <returns></returns>
     public bool ConsumeJump()
     {
         if (Time.timeScale <= 0f)

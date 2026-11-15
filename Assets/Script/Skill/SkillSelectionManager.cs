@@ -10,6 +10,7 @@ public sealed class SkillSelectionManager : MonoBehaviour
 
     [SerializeField] private PlayerPresenter player;
     [SerializeField] private WeaponManager weaponManager;
+    [SerializeField] private GameSessionManager session;
     [SerializeField] private List<SkillBase> skillPool = new();
 
     [Header("シーンのCanvas上にある選択UI")]
@@ -20,11 +21,17 @@ public sealed class SkillSelectionManager : MonoBehaviour
     private readonly HashSet<string> candidateKeys = new();
     private SkillContext context;
     private PlayerInputReader playerInput;
-    private float previousTimeScale;
     private int pendingSelections;
 
     private void Start()
     {
+        if (session == null)
+        {
+            Debug.LogError("SkillSelectionManagerにシーン上のGameSessionManagerを設定してください。", this);
+            enabled = false;
+            return;
+        }
+
         if (selectionUI == null)
         {
             Debug.LogError("SkillSelectionManagerにシーン上のSkillSelectionUIを設定してください。", this);
@@ -87,7 +94,7 @@ public sealed class SkillSelectionManager : MonoBehaviour
     private void OpenNextSelection()
     {
         if (pendingSelections == 0 || !isActiveAndEnabled || IsChoosing ||
-            player == null || !player.Model.IsAlive || Time.timeScale <= 0f)
+            player == null || !player.Model.IsAlive || session == null)
         {
             return;
         }
@@ -136,10 +143,14 @@ public sealed class SkillSelectionManager : MonoBehaviour
             return;
         }
 
+        if (!session.TryPauseForSkillSelection())
+        {
+            currentChoices.Clear();
+            return;
+        }
+
         pendingSelections--;
-        previousTimeScale = Time.timeScale;
         IsChoosing = true;
-        Time.timeScale = 0f;
         playerInput?.ClearJumpRequest();
         ChoicesOpened?.Invoke();
     }
@@ -185,8 +196,10 @@ public sealed class SkillSelectionManager : MonoBehaviour
         IsChoosing = false;
         currentChoices.Clear();
         playerInput?.ClearJumpRequest();
-        bool playerIsDead = player != null && !player.Model.IsAlive;
-        Time.timeScale = playerIsDead ? 0f : previousTimeScale;
+        if (session != null)
+        {
+            session.ResumeAfterSkillSelection();
+        }
         ChoicesClosed?.Invoke();
     }
 }

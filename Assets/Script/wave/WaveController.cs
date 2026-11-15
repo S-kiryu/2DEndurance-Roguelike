@@ -300,14 +300,12 @@ public sealed class WaveController : MonoBehaviour
             sequenceData.WaveDuration
         );
 
+        SpawnDueEnemies();
+
         if (waveElapsedTime >= sequenceData.WaveDuration)
         {
-            // 終了フレームで取りこぼした予定は次Waveへ持ち越さない。
             FinishWave();
-            return;
         }
-
-        SpawnDueEnemies();
     }
 
     /// <summary>
