@@ -135,6 +135,13 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
     /// </summary>
     protected virtual void Die()
     {
+        if (statusData != null && statusData.ExperienceReward > 0 && statusData.ExperiencePickupPrefab != null)
+        {
+            ExperiencePickup prefab = statusData.ExperiencePickupPrefab;
+            ExperiencePickup pickup = Instantiate(prefab, transform.position, prefab.transform.rotation);
+            pickup.Initialize(statusData.ExperienceReward);
+        }
+
         GameObjectPool.Despawn(gameObject);
     }
 

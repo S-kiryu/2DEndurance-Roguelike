@@ -11,6 +11,7 @@ public sealed class GameSessionUI : MonoBehaviour
     [SerializeField] private TMP_Text survivalTimeText;
     [SerializeField] private TMP_Text waveText;
     [SerializeField] private TMP_Text waveRemainingText;
+    [SerializeField] private TMP_Text experienceText;
 
     [Header("ゲームオーバー")]
     [SerializeField] private GameObject gameOverPanel;
@@ -59,21 +60,23 @@ public sealed class GameSessionUI : MonoBehaviour
     /// <summary>
     /// UIを更新する関数
     /// </summary>
-    /// <param name="currentHealth">現在の体力</param>
-    /// <param name="maxHealth">最大体力</param>
+    /// <param name="player">プレイヤーのHPと経験値</param>
     /// <param name="survivalTime">生存時間</param>
     /// <param name="wave">ウェーブ番号</param>
     /// <param name="waveRemaining">次のウェーブまでの残り時間</param>
     public void RefreshHud(
-        int currentHealth,
-        int maxHealth,
+        PlayerModel player,
         float survivalTime,
         int wave,
         float waveRemaining)
     {
         if (healthText != null)
         {
-            healthText.text = $"HP {currentHealth} / {maxHealth}";
+            healthText.text = $"HP {player.CurrentHealth} / {player.MaxHealth}";
+        }
+        if (experienceText != null)
+        {
+            experienceText.text = $"LV {player.Level}   XP {player.CurrentExperience} / {player.ExperienceToNextLevel}";
         }
         if (survivalTimeText != null)
         {

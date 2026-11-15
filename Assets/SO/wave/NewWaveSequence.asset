@@ -18,10 +18,10 @@ MonoBehaviour:
   spawnTiming: 0
   waves:
   - enemies:
-    - enemyId: "\u30B7\u30B7\u30CA\u30A4\u30E9"
+    - enemyId: siranai
       count: 5
   endlessGrowth:
-  - enemyId: "\u30B7\u30B7\u30CA\u30A4\u30E9"
+  - enemyId: siranai
     increaseCount: 1
     increaseEveryWaves: 1
   endlessStatGrowth:

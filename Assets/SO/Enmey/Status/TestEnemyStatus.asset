@@ -15,3 +15,5 @@ MonoBehaviour:
   maxHP: 50
   damage: 10
   speed: 2
+  experienceReward: 1
+  experiencePickupPrefab: {fileID: 1006, guid: 451f57473229491d9210310d068128de, type: 3}

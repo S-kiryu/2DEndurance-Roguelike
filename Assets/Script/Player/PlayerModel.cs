@@ -9,9 +9,14 @@ public sealed class PlayerModel
 {
     /// <summary>死亡時に発火するイベント</summary>
     public event Action Died;
+    public event Action<int> LeveledUp;
 
     public int MaxHealth => _maxHealth + maxHealthBonus;
     public int CurrentHealth { get; private set; }
+    public int Level { get; private set; } = 1;
+    public int CurrentExperience { get; private set; }
+    public int ExperienceToNextLevel => (int)Math.Min(int.MaxValue,
+        Math.Max(1, experienceForFirstLevelUp) + (long)(Level - 1) * Math.Max(0, experienceIncreasePerLevel));
 
     public float MoveSpeed => _moveSpeed + moveSpeedBonus;
     public float JumpSpeed => _jumpPower;
@@ -47,6 +52,10 @@ public sealed class PlayerModel
     [SerializeField, Min(0f)]
     private float _criticalRateBonus;
 
+    [Header("レベルアップ")]
+    [SerializeField, Min(1)] private int experienceForFirstLevelUp = 5;
+    [SerializeField, Min(0)] private int experienceIncreasePerLevel = 3;
+
     private int maxHealthBonus;
     private float moveSpeedBonus;
     private float attackMultiplierBonus;
@@ -62,6 +71,32 @@ public sealed class PlayerModel
         criticalRateBonus = 0f;
         CurrentHealth = MaxHealth;
         IsInvincible = false;
+        Level = 1;
+        CurrentExperience = 0;
+    }
+
+    public bool TryGainExperience(int amount)
+    {
+        if (!IsAlive || amount <= 0)
+        {
+            return false;
+        }
+
+        long experience = (long)CurrentExperience + amount;
+        int startingLevel = Level;
+        while (experience >= ExperienceToNextLevel)
+        {
+            experience -= ExperienceToNextLevel;
+            Level++;
+        }
+
+        CurrentExperience = (int)experience;
+        if (Level > startingLevel)
+        {
+            LeveledUp?.Invoke(Level - startingLevel);
+        }
+
+        return true;
     }
 
     /// <summary>

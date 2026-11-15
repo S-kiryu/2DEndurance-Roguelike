@@ -10,7 +10,6 @@ public sealed class SkillSelectionManager : MonoBehaviour
 
     [SerializeField] private PlayerPresenter player;
     [SerializeField] private WeaponManager weaponManager;
-    [SerializeField] private WaveController waveController;
     [SerializeField] private List<SkillBase> skillPool = new();
 
     [Header("シーンのCanvas上にある選択UI")]
@@ -22,6 +21,7 @@ public sealed class SkillSelectionManager : MonoBehaviour
     private SkillContext context;
     private PlayerInputReader playerInput;
     private float previousTimeScale;
+    private int pendingSelections;
 
     private void Start()
     {
@@ -57,47 +57,36 @@ public sealed class SkillSelectionManager : MonoBehaviour
 
     private void OnEnable()
     {
-        if (waveController != null)
-        {
-            waveController.WaveEnded += OnWaveEnded;
-        }
-
         if (player != null)
         {
+            player.Model.LeveledUp += OnPlayerLeveledUp;
             player.PlayerDied += CancelSelection;
         }
     }
 
     private void OnDisable()
     {
-        if (waveController != null)
-        {
-            waveController.WaveEnded -= OnWaveEnded;
-        }
-
         if (player != null)
         {
+            player.Model.LeveledUp -= OnPlayerLeveledUp;
             player.PlayerDied -= CancelSelection;
         }
 
         CancelSelection();
     }
 
-    /// <summary>
-    /// ウェーブが終わった時の処理
-    /// </summary>
-    /// <param name="waveNumber">ウェーブ数</param>
-    private void OnWaveEnded(int waveNumber)
+    private void OnPlayerLeveledUp(int levelsGained)
     {
-        OpenSelection();
+        pendingSelections += levelsGained;
+        OpenNextSelection();
     }
 
     /// <summary>
     /// 選択肢を表示させる処理
     /// </summary>
-    public void OpenSelection()
+    private void OpenNextSelection()
     {
-        if (!Application.isPlaying || !isActiveAndEnabled || IsChoosing ||
+        if (pendingSelections == 0 || !isActiveAndEnabled || IsChoosing ||
             player == null || !player.Model.IsAlive || Time.timeScale <= 0f)
         {
             return;
@@ -142,10 +131,12 @@ public sealed class SkillSelectionManager : MonoBehaviour
 
         if (currentChoices.Count == 0)
         {
+            pendingSelections = 0;
             Debug.LogWarning("適用可能なスキルがありません。", this);
             return;
         }
 
+        pendingSelections--;
         previousTimeScale = Time.timeScale;
         IsChoosing = true;
         Time.timeScale = 0f;
@@ -169,8 +160,9 @@ public sealed class SkillSelectionManager : MonoBehaviour
             return false;
         }
 
-        CancelSelection();
+        CloseSelection();
         SkillSelected?.Invoke(selected.Skill);
+        OpenNextSelection();
         return true;
     }
 
@@ -178,6 +170,12 @@ public sealed class SkillSelectionManager : MonoBehaviour
     /// セレクトをキャンセルする処理
     /// </summary>
     public void CancelSelection()
+    {
+        pendingSelections = 0;
+        CloseSelection();
+    }
+
+    private void CloseSelection()
     {
         if (!IsChoosing)
         {

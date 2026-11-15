@@ -117,8 +117,7 @@ public sealed class GameSessionManager : MonoBehaviour
             : 0f;
 
         sessionUI.RefreshHud(
-            player.Model.CurrentHealth,
-            player.Model.MaxHealth,
+            player.Model,
             SurvivalTime,
             wave,
             remaining
