@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public sealed class TitleScreenUI : MonoBehaviour
 {
     public const string ScenePath = "Assets/Scenes/TitleScene.unity";
-    public const string GameplayScenePath = "Assets/Scenes/SampleScene.unity";
+    public const string GameplayScenePath = "Assets/Scenes/InGame.unity";
 
     public void StartRun()
     {

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1004}
   - component: {fileID: 1005}
   - component: {fileID: 1006}
+  - component: {fileID: -59442818112870723}
   m_Layer: 0
   m_Name: ExperiencePickup
   m_TagString: Untagged
@@ -168,9 +169,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c918abc0f8624438bf6808222420458b, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExperiencePickup
   _groundLayers:
     serializedVersion: 2
     m_Bits: 8
   _fallSpeed: 7
+--- !u!114 &-59442818112870723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61f88f675f114e543aac7dfe736d13c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UpDownMove
+  _moveDistance: 0.2
+  _moveSpeed: 1.5
+  _shadow: {fileID: 0}

@@ -372,6 +372,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMove
   _moveSpeed: 1
   _spriteFacesLeft: 1
+  _shadowToMirror: {fileID: 3452107717890766442}
 --- !u!114 &1623824000643306243
 MonoBehaviour:
   m_ObjectHideFlags: 0

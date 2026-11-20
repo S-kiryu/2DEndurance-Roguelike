@@ -18,14 +18,10 @@ MonoBehaviour:
   _spawnTiming: 0
   _waves:
   - _enemies:
-    - _enemyId: siranai
-      _count: 5
-    - _enemyId: dool
-      _count: 5
-    - _enemyId: boon
-      _count: 1
+    - _enemyId: kimo
+      _count: 10
   _endlessGrowth:
-  - _enemyId: siranai
+  - _enemyId: kimo
     _increaseCount: 1
     _increaseEveryWaves: 1
   _endlessStatGrowth:

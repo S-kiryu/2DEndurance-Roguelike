@@ -21,3 +21,5 @@ MonoBehaviour:
     _prefab: {fileID: 7743896693862657505, guid: f6cae04d086c06c4980cecc5a664d88c, type: 3}
   - _id: boon
     _prefab: {fileID: 7743896693862657505, guid: 57deb408a47a49a4185ab77352d42fe1, type: 3}
+  - _id: kimo
+    _prefab: {fileID: 7743896693862657505, guid: 73559ae9e3ce0b049b73b0053a16e711, type: 3}

@@ -67,6 +67,11 @@ public class Sword : Weapon
         return weaponData is SwordData;
     }
 
+    protected override string GetDataError(WeaponData weaponData)
+    {
+        return _attackHitbox == null ? "武器Prefabに攻撃判定用のColliderを設定してください。" : null;
+    }
+
     protected override void OnInitialized()
     {
         _swordData = (SwordData)Data;
@@ -107,15 +112,19 @@ public class Sword : Weapon
     [SerializeField]
     private Transform _visualRoot;
 
-    private Animator _animator;
-
-    [Header("デバッグ")]
+    [Header("攻撃判定")]
+    [Tooltip("武器Prefab直下の攻撃判定。Edit Colliderで形を調整できます。")]
     [SerializeField]
-    private bool _showAttackRange;
+    private PolygonCollider2D _attackHitbox;
+
+    private Animator _animator;
 
     private static readonly int _attackTriggerHash = Animator.StringToHash("Attack");
     private readonly HashSet<IDamageable> _hitTargets = new();
     private readonly List<Collider2D> _targetsInRange = new();
+    private Vector3 _hitboxBasePosition;
+    private Vector3 _hitboxBaseScale;
+    private float _hitboxRangeMultiplier = 1f;
     private SpriteRenderer[] _visualRenderers;
     private SwordData _swordData;
     private Quaternion _idleRotation;
@@ -135,6 +144,13 @@ public class Sword : Weapon
             _animator = GetComponent<Animator>();
         }
 
+        if (_attackHitbox != null)
+        {
+            _attackHitbox.enabled = false;
+            _hitboxBasePosition = _attackHitbox.transform.localPosition;
+            _hitboxBaseScale = _attackHitbox.transform.localScale;
+        }
+
         _idleRotation = _visualRoot.localRotation;
         _visualRenderers = _visualRoot.GetComponentsInChildren<SpriteRenderer>(true);
         SetVisualVisible(false);
@@ -146,7 +162,7 @@ public class Sword : Weapon
 
         foreach (Collider2D targetCollider in _targetsInRange)
         {
-            if (IsValidTarget(targetCollider))
+            if (GetDamageable(targetCollider) != null)
             {
                 return true;
             }
@@ -162,12 +178,7 @@ public class Sword : Weapon
 
         foreach (Collider2D targetCollider in _targetsInRange)
         {
-            if (!IsValidTarget(targetCollider))
-            {
-                continue;
-            }
-
-            IDamageable target = targetCollider.GetComponentInParent<IDamageable>();
+            IDamageable target = GetDamageable(targetCollider);
 
             if (target != null && _hitTargets.Add(target))
             {
@@ -178,75 +189,68 @@ public class Sword : Weapon
 
     private void FindTargetsInRange()
     {
+        _targetsInRange.Clear();
+        float rangeMultiplier = WeaponRangeMultiplier;
+        if (rangeMultiplier <= 0f)
+        {
+            return;
+        }
+
+        if (_hitboxRangeMultiplier != rangeMultiplier)
+        {
+            Transform hitbox = _attackHitbox.transform;
+            hitbox.localPosition = _hitboxBasePosition * rangeMultiplier;
+            hitbox.localScale = Vector3.Scale(_hitboxBaseScale, new Vector3(rangeMultiplier, rangeMultiplier, 1f));
+            _hitboxRangeMultiplier = rangeMultiplier;
+        }
+
         int layerMask = _swordData.TargetLayers.value == 0
             ? Physics2D.AllLayers
             : _swordData.TargetLayers.value;
 
         var filter = new ContactFilter2D { useTriggers = Physics2D.queriesHitTriggers };
         filter.SetLayerMask(layerMask);
-        Physics2D.OverlapCircle(transform.position, GetAttackRadius(_swordData), filter, _targetsInRange);
-    }
-
-    private float GetAttackRadius(SwordData attackData)
-    {
-        return attackData.AttackRange * WeaponRangeMultiplier;
-    }
-
-    private Vector2 GetAttackDirection()
-    {
-        Transform facingRoot = transform.parent != null ? transform.parent : transform;
-        return facingRoot.lossyScale.x < 0f ? Vector2.left : Vector2.right;
-    }
-
-    private bool IsValidTarget(Collider2D targetCollider)
-    {
-        if (targetCollider.transform.root == transform.root)
+        // 今フレームの公転位置や左右反転を反映し、問い合わせ中だけ判定を有効にする。
+        _attackHitbox.enabled = true;
+        try
         {
-            return false;
+            Physics2D.SyncTransforms();
+            _attackHitbox.Overlap(filter, _targetsInRange);
         }
-
-        Vector2 targetDirection = targetCollider.bounds.center - transform.position;
-
-        if (targetDirection.sqrMagnitude > 0f &&
-            Vector2.Angle(GetAttackDirection(), targetDirection) > _swordData.AttackAngle * 0.5f)
+        finally
         {
-            return false;
+            _attackHitbox.enabled = false;
         }
+    }
 
-        return targetCollider.GetComponentInParent<IDamageable>() != null;
+    private IDamageable GetDamageable(Collider2D targetCollider)
+    {
+        return targetCollider != null && targetCollider.transform.root != transform.root
+            ? targetCollider.GetComponentInParent<IDamageable>()
+            : null;
     }
 
 #if UNITY_EDITOR
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
-        if (!_showAttackRange || !isActiveAndEnabled || Data is not SwordData attackData)
+        if (_attackHitbox == null)
         {
             return;
         }
 
-        Vector3 center = transform.position;
-        Vector3 reach = GetAttackDirection() * GetAttackRadius(attackData);
-        float angle = attackData.AttackAngle;
-        float halfAngle = angle * 0.5f;
-        int segments = Mathf.Max(1, Mathf.CeilToInt(angle / 5f));
-        Vector3 firstPoint = center + Quaternion.Euler(0f, 0f, -halfAngle) * reach;
-        Vector3 previousPoint = firstPoint;
-
+        Matrix4x4 previousMatrix = Gizmos.matrix;
         Color previousColor = Gizmos.color;
+        Gizmos.matrix = _attackHitbox.transform.localToWorldMatrix;
         Gizmos.color = Color.cyan;
-        for (int i = 1; i <= segments; i++)
+        for (int pathIndex = 0; pathIndex < _attackHitbox.pathCount; pathIndex++)
         {
-            float degrees = Mathf.Lerp(-halfAngle, halfAngle, (float)i / segments);
-            Vector3 nextPoint = center + Quaternion.Euler(0f, 0f, degrees) * reach;
-            Gizmos.DrawLine(previousPoint, nextPoint);
-            previousPoint = nextPoint;
+            Vector2[] path = _attackHitbox.GetPath(pathIndex);
+            for (int i = 0; i < path.Length; i++)
+            {
+                Gizmos.DrawLine(path[i] + _attackHitbox.offset, path[(i + 1) % path.Length] + _attackHitbox.offset);
+            }
         }
-
-        if (angle < 360f)
-        {
-            Gizmos.DrawLine(center, firstPoint);
-            Gizmos.DrawLine(center, previousPoint);
-        }
+        Gizmos.matrix = previousMatrix;
         Gizmos.color = previousColor;
     }
 #endif
