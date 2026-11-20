@@ -35,14 +35,14 @@ public sealed class WeaponRarityUpgradeSkill : SkillBase
 
         foreach (Weapon weapon in context.Weapons.Weapons)
         {
-            if (!CanUpgrade(weapon))
+            if (weapon == null)
             {
                 continue;
             }
 
-            if (weapon.CanUpgradeStar)
+            WeaponUpgradeStage stage = weapon.GetNextStarUpgrade();
+            if (stage != null)
             {
-                WeaponUpgradeStage stage = weapon.GetNextStarUpgrade();
                 string stageName = string.IsNullOrWhiteSpace(stage.DisplayName)
                     ? $"{weapon.DisplayName} ★{stage.StarLevel}"
                     : stage.DisplayName;
@@ -59,13 +59,13 @@ public sealed class WeaponRarityUpgradeSkill : SkillBase
                     offeredStarLevel: stage.StarLevel
                 ));
             }
-            else
+            else if (weapon.CanUpgradePostMaxDamage)
             {
                 float bonus = weapon.WeaponData.PostMaxDamageMultiplierBonus;
                 candidates.Add(new SkillCandidate(
                     this,
                     $"{weapon.DisplayName} 攻撃強化",
-                    $"対象: {weapon.DisplayName}\n★5後の攻撃力を+{bonus:P0}（何度でも取得可能）",
+                    $"対象: {weapon.DisplayName}\n★{weapon.MaxStarLevel}後の攻撃力を+{bonus:P0}（何度でも取得可能）",
                     $"weapon-post-max:{weapon.WeaponData.GetEntityId()}:{bonus:R}",
                     weapon
                 ));
@@ -92,26 +92,21 @@ public sealed class WeaponRarityUpgradeSkill : SkillBase
         return false;
     }
 
-    /// <summary>候補の対象武器をまだ所持している場合に強化する。</summary>
+    /// <summary>候補に表示した星段階の強化を、同じ装備に適用する。</summary>
     internal override bool TryApplyCandidate(SkillContext context, SkillCandidate candidate)
     {
-        if (context == null || context.Weapons == null || candidate == null ||
-            candidate.TargetWeapon == null)
+        Weapon weapon = candidate?.TargetWeapon;
+        if (context?.Weapons == null || !context.Weapons.OwnsWeapon(weapon) ||
+            weapon.StarLevel != candidate.CurrentStarLevel)
         {
             return false;
         }
 
-        bool isOwned = false;
-        foreach (Weapon weapon in context.Weapons.Weapons)
-        {
-            if (ReferenceEquals(weapon, candidate.TargetWeapon))
-            {
-                isOwned = true;
-                break;
-            }
-        }
+        if (candidate.OfferedStarLevel == 0)
+            return weapon.ApplyPostMaxDamageUpgrade();
 
-        return isOwned && TryUpgrade(candidate.TargetWeapon);
+        WeaponUpgradeStage stage = weapon.GetNextStarUpgrade();
+        return stage != null && stage.StarLevel == candidate.OfferedStarLevel && weapon.ApplyNextStarUpgrade();
     }
 
     /// <summary>武器に適用できる強化があるか調べる。</summary>

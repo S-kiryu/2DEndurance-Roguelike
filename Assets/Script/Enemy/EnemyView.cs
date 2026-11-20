@@ -5,71 +5,71 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class EnemyView : MonoBehaviour
 {
-    [SerializeField] private SpriteRenderer damageRenderer;
-    [SerializeField] private SpriteRenderer damageFlashOverlay;
-    [SerializeField, Min(0.01f)] private float damageFlashDuration = 0.15f;
-
-    private Color originalColor;
-    private Coroutine damageFlash;
-
-    private void Awake()
-    {
-        if (damageRenderer == null)
-        {
-            damageRenderer = GetComponentInChildren<SpriteRenderer>(true);
-        }
-        if (damageRenderer != null)
-        {
-            originalColor = damageRenderer.color;
-        }
-    }
-
     public void PlayDamageFlash()
     {
-        if (!isActiveAndEnabled || damageRenderer == null)
+        if (!isActiveAndEnabled || _damageRenderer == null)
         {
             return;
         }
-        if (damageFlash != null)
+        if (_damageFlash != null)
         {
-            StopCoroutine(damageFlash);
+            StopCoroutine(_damageFlash);
         }
-        damageFlash = StartCoroutine(FlashDamage());
+        _damageFlash = StartCoroutine(FlashDamage());
+    }
+
+    [SerializeField] private SpriteRenderer _damageRenderer;
+    [SerializeField] private SpriteRenderer _damageFlashOverlay;
+    [SerializeField, Min(0.01f)] private float _damageFlashDuration = 0.15f;
+
+    private Color _originalColor;
+    private Coroutine _damageFlash;
+
+    private void Awake()
+    {
+        if (_damageRenderer == null)
+        {
+            _damageRenderer = GetComponentInChildren<SpriteRenderer>(true);
+        }
+        if (_damageRenderer != null)
+        {
+            _originalColor = _damageRenderer.color;
+        }
     }
 
     private IEnumerator FlashDamage()
     {
-        if (damageFlashOverlay == null)
+        if (_damageFlashOverlay == null)
         {
-            damageRenderer.color = new Color(1f, 0f, 0f, originalColor.a);
+            _damageRenderer.color = new Color(1f, 0f, 0f, _originalColor.a);
         }
-        yield return new WaitForSeconds(damageFlashDuration);
+        yield return new WaitForSeconds(_damageFlashDuration);
         ClearDamageFlash();
-        damageFlash = null;
+        _damageFlash = null;
     }
 
     private void LateUpdate()
     {
-        if (damageFlash == null || damageFlashOverlay == null || damageRenderer == null)
+        if (_damageFlash == null || _damageFlashOverlay == null || _damageRenderer == null)
         {
             return;
         }
 
         // Animatorが更新したコマと移動で変わった向きを描画前に反映する。
-        damageFlashOverlay.sprite = damageRenderer.sprite;
-        damageFlashOverlay.flipX = damageRenderer.flipX;
-        damageFlashOverlay.flipY = damageRenderer.flipY;
-        Color overlayColor = damageFlashOverlay.color;
-        overlayColor.a = damageRenderer.color.a;
-        damageFlashOverlay.color = overlayColor;
+        _damageFlashOverlay.sprite = _damageRenderer.sprite;
+        _damageFlashOverlay.flipX = _damageRenderer.flipX;
+        _damageFlashOverlay.flipY = _damageRenderer.flipY;
+        Color overlayColor = _damageFlashOverlay.color;
+        overlayColor.a = _damageRenderer.color.a;
+        _damageFlashOverlay.color = overlayColor;
     }
 
     private void OnDisable()
     {
-        if (damageFlash != null)
+        if (_damageFlash != null)
         {
-            StopCoroutine(damageFlash);
-            damageFlash = null;
+            StopCoroutine(_damageFlash);
+            _damageFlash = null;
         }
         // プールに戻った個体が、赤いまま再出現しないようにする。
         ClearDamageFlash();
@@ -77,15 +77,15 @@ public sealed class EnemyView : MonoBehaviour
 
     private void ClearDamageFlash()
     {
-        if (damageFlashOverlay != null)
+        if (_damageFlashOverlay != null)
         {
-            Color overlayColor = damageFlashOverlay.color;
+            Color overlayColor = _damageFlashOverlay.color;
             overlayColor.a = 0f;
-            damageFlashOverlay.color = overlayColor;
+            _damageFlashOverlay.color = overlayColor;
         }
-        else if (damageRenderer != null)
+        else if (_damageRenderer != null)
         {
-            damageRenderer.color = originalColor;
+            _damageRenderer.color = _originalColor;
         }
     }
 }

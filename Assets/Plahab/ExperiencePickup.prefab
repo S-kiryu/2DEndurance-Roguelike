@@ -170,7 +170,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c918abc0f8624438bf6808222420458b, type: 3}
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::ExperiencePickup
-  groundLayers:
+  _groundLayers:
     serializedVersion: 2
     m_Bits: 8
-  fallSpeed: 7
+  _fallSpeed: 7

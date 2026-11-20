@@ -6,23 +6,85 @@ using UnityEngine;
 [RequireComponent(typeof(EnemyView))]
 public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
 {
-    [SerializeField] private EnemyStatusData statusData;
-
-    private IDamageable playerDamageable;
-    private int currentMaxHP;
-    private int currentDamage;
-    private EnemyView view;
-
     public int CurrentHP { get; private set; }
-    public int CurrentMaxHP => currentMaxHP;
+    public int CurrentMaxHP => _currentMaxHP;
 
-    public int Damage => currentDamage;
-    public float Speed => statusData != null ? statusData.Speed : 0f;
+    public int Damage => _currentDamage;
+    public float Speed => _statusData != null ? _statusData.Speed : 0f;
+
+    protected Transform PlayerTarget { get; private set; }
+    protected virtual bool DealsContactDamage => true;
+
+    public virtual void Initialize(GameObject player)
+    {
+        Initialize(player, EnemyStatScale.Default);
+    }
+
+    public virtual void Initialize(GameObject player, EnemyStatScale statScale)
+    {
+        PlayerTarget = player != null ? player.transform : null;
+        _playerDamageable = player != null
+            ? player.GetComponentInParent<IDamageable>()
+            : null;
+
+        if (_statusData == null)
+        {
+            return;
+        }
+
+        _currentMaxHP = statScale.ScaleHealth(_statusData.MaxHP);
+        _currentDamage = statScale.ScaleDamage(_statusData.Damage);
+        CurrentHP = _currentMaxHP;
+
+        if (TryGetComponent(out EnemyMove enemyMove))
+        {
+            enemyMove.Initialize(player, _statusData.Speed);
+        }
+    }
+
+    public virtual void OnPoolSpawned()
+    {
+        ResetCombatStats();
+        PlayerTarget = null;
+        _playerDamageable = null;
+    }
+
+    public virtual void OnPoolDespawned()
+    {
+        PlayerTarget = null;
+        _playerDamageable = null;
+        CancelInvoke();
+        StopAllCoroutines();
+    }
+
+    /// <summary>
+    /// 攻撃を受ける関数
+    /// </summary>
+    /// <param name="amount">攻撃力</param>
+    public virtual void TakeDamage(int amount)
+    {
+        if (!isActiveAndEnabled || amount <= 0 || CurrentHP <= 0)
+        {
+            return;
+        }
+
+        CurrentHP = Mathf.Max(CurrentHP - amount, 0);
+
+        if (_view != null)
+        {
+            _view.PlayDamageFlash();
+        }
+
+        if (CurrentHP == 0)
+        {
+            Die();
+        }
+    }
 
     protected virtual void Awake()
     {
-        view = GetComponent<EnemyView>();
-        if (statusData == null)
+        _view = GetComponent<EnemyView>();
+        if (_statusData == null)
         {
             Debug.LogError(
                 $"{name} に EnemyStatusData が設定されていません。",
@@ -36,44 +98,45 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
         ResetCombatStats();
     }
 
-    public virtual void Initialize(GameObject player)
+    /// <summary>
+    /// 死亡処置
+    /// </summary>
+    protected virtual void Die()
     {
-        Initialize(player, EnemyStatScale.Default);
-    }
-
-    public virtual void Initialize(GameObject player, EnemyStatScale statScale)
-    {
-        playerDamageable = player != null
-            ? player.GetComponentInParent<IDamageable>()
-            : null;
-
-        if (statusData == null)
+        if (_statusData != null && _statusData.ExperienceReward > 0 && _statusData.ExperiencePickupPrefab != null)
         {
-            return;
+            ExperiencePickup prefab = _statusData.ExperiencePickupPrefab;
+            GameObjectPool pool = GameObjectPool.FindPoolFor(gameObject);
+            ExperiencePickup pickup = pool != null
+                ? pool.Spawn(prefab, transform.position, prefab.transform.rotation)
+                : Instantiate(prefab, transform.position, prefab.transform.rotation);
+
+            if (pickup != null)
+            {
+                pickup.Initialize(_statusData.ExperienceReward);
+            }
         }
 
-        currentMaxHP = statScale.ScaleHealth(statusData.MaxHP);
-        currentDamage = statScale.ScaleDamage(statusData.Damage);
-        CurrentHP = currentMaxHP;
-
-        if (TryGetComponent(out EnemyMove enemyMove))
-        {
-            enemyMove.Initialize(player, statusData.Speed);
-        }
+        GameObjectPool.Despawn(gameObject);
     }
 
-    public virtual void OnPoolSpawned()
+    protected void DamagePlayer()
     {
-        ResetCombatStats();
-        playerDamageable = null;
+        _playerDamageable?.TakeDamage(Damage);
     }
 
-    public virtual void OnPoolDespawned()
+    protected bool IsPlayerCollider(Collider2D other)
     {
-        playerDamageable = null;
-        CancelInvoke();
-        StopAllCoroutines();
+        return _playerDamageable != null &&
+            ReferenceEquals(other.GetComponentInParent<IDamageable>(), _playerDamageable);
     }
+
+    [SerializeField] private EnemyStatusData _statusData;
+
+    private IDamageable _playerDamageable;
+    private int _currentMaxHP;
+    private int _currentDamage;
+    private EnemyView _view;
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -91,58 +154,16 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
     /// <param name="other"></param>
     private void TryDealContactDamage(Collider2D other)
     {
-        if (!isActiveAndEnabled || statusData == null ||
-            CurrentHP <= 0 || playerDamageable == null)
+        if (!DealsContactDamage || !isActiveAndEnabled || _statusData == null || CurrentHP <= 0)
         {
             return;
         }
 
         // 追跡対象のプレイヤーだけを攻撃する。子のColliderにも対応する。
-        IDamageable target = other.GetComponentInParent<IDamageable>();
-
-        if (ReferenceEquals(target, playerDamageable))
+        if (IsPlayerCollider(other))
         {
-            target.TakeDamage(Damage);
+            DamagePlayer();
         }
-    }
-
-    /// <summary>
-    /// 攻撃を受ける関数
-    /// </summary>
-    /// <param name="amount">攻撃力</param>
-    public virtual void TakeDamage(int amount)
-    {
-        if (!isActiveAndEnabled || amount <= 0 || CurrentHP <= 0)
-        {
-            return;
-        }
-
-        CurrentHP = Mathf.Max(CurrentHP - amount, 0);
-
-        if (view != null)
-        {
-            view.PlayDamageFlash();
-        }
-
-        if (CurrentHP == 0)
-        {
-            Die();
-        }
-    }
-
-    /// <summary>
-    /// 死亡処置
-    /// </summary>
-    protected virtual void Die()
-    {
-        if (statusData != null && statusData.ExperienceReward > 0 && statusData.ExperiencePickupPrefab != null)
-        {
-            ExperiencePickup prefab = statusData.ExperiencePickupPrefab;
-            ExperiencePickup pickup = Instantiate(prefab, transform.position, prefab.transform.rotation);
-            pickup.Initialize(statusData.ExperienceReward);
-        }
-
-        GameObjectPool.Despawn(gameObject);
     }
 
     /// <summary>
@@ -150,8 +171,8 @@ public abstract class EnemyBase : MonoBehaviour, IDamageable, IPoolable
     /// </summary>
     private void ResetCombatStats()
     {
-        currentMaxHP = statusData != null ? Mathf.Max(1, statusData.MaxHP) : 0;
-        currentDamage = statusData != null ? Mathf.Max(0, statusData.Damage) : 0;
-        CurrentHP = currentMaxHP;
+        _currentMaxHP = _statusData != null ? Mathf.Max(1, _statusData.MaxHP) : 0;
+        _currentDamage = _statusData != null ? Mathf.Max(0, _statusData.Damage) : 0;
+        CurrentHP = _currentMaxHP;
     }
 }

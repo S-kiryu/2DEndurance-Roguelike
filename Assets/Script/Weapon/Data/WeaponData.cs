@@ -5,37 +5,36 @@ using UnityEngine;
 [Serializable]
 public sealed class WeaponUpgradeStage
 {
-    [SerializeField, Range(2, 5)] private int starLevel = 2;
-    [SerializeField] private string displayName;
-    [SerializeField, TextArea(2, 5)] private string description;
+    public int StarLevel => Mathf.Clamp(_starLevel, 2, 5);
+    public string DisplayName => _displayName;
+    public string Description => _description;
+    public float DamageMultiplierBonus => Mathf.Max(0f, _damageMultiplierBonus);
+    public float AttackSpeedMultiplierBonus => Mathf.Max(0f, _attackSpeedMultiplierBonus);
+    public float CriticalRateBonus => Mathf.Max(0f, _criticalRateBonus);
+    public float RangeMultiplierBonus => Mathf.Max(0f, _rangeMultiplierBonus);
+    public float ProjectileSpeedMultiplierBonus => Mathf.Max(0f, _projectileSpeedMultiplierBonus);
+    public int PenetrationBonus => Mathf.Max(0, _penetrationBonus);
+    public IReadOnlyList<WeaponUpgradeEffect> Effects => _effects;
+
+    [SerializeField, Range(2, 5)] private int _starLevel = 2;
+    [SerializeField] private string _displayName;
+    [SerializeField, TextArea(2, 5)] private string _description;
 
     [Header("この段階で加算する性能")]
     [Tooltip("0.2で攻撃力+20%")]
-    [SerializeField, Min(0f)] private float damageMultiplierBonus;
+    [SerializeField, Min(0f)] private float _damageMultiplierBonus;
     [Tooltip("0.2で攻撃速度+20%")]
-    [SerializeField, Min(0f)] private float attackSpeedMultiplierBonus;
-    [Tooltip("0.05でクリティカル率+5ポイント")]
-    [SerializeField, Min(0f)] private float criticalRateBonus;
+    [SerializeField, Min(0f)] private float _attackSpeedMultiplierBonus;
+    [Tooltip("0.05でクリティカル率+5%")]
+    [SerializeField, Min(0f)] private float _criticalRateBonus;
     [Tooltip("0.2で攻撃範囲+20%")]
-    [SerializeField, Min(0f)] private float rangeMultiplierBonus;
+    [SerializeField, Min(0f)] private float _rangeMultiplierBonus;
     [Tooltip("0.2で弾速+20%")]
-    [SerializeField, Min(0f)] private float projectileSpeedMultiplierBonus;
-    [SerializeField, Min(0)] private int penetrationBonus;
+    [SerializeField, Min(0f)] private float _projectileSpeedMultiplierBonus;
+    [SerializeField, Min(0)] private int _penetrationBonus;
 
-    [Header("追加効果（登録した順に適用）")]
-    [Tooltip("ProjectのCreate > Weapons > Effectsから作成した効果を登録。星5以外にも設定できます。")]
-    [SerializeField] private List<WeaponUpgradeEffect> effects = new();
-
-    public int StarLevel => Mathf.Clamp(starLevel, 2, 5);
-    public string DisplayName => displayName;
-    public string Description => description;
-    public float DamageMultiplierBonus => Mathf.Max(0f, damageMultiplierBonus);
-    public float AttackSpeedMultiplierBonus => Mathf.Max(0f, attackSpeedMultiplierBonus);
-    public float CriticalRateBonus => Mathf.Max(0f, criticalRateBonus);
-    public float RangeMultiplierBonus => Mathf.Max(0f, rangeMultiplierBonus);
-    public float ProjectileSpeedMultiplierBonus => Mathf.Max(0f, projectileSpeedMultiplierBonus);
-    public int PenetrationBonus => Mathf.Max(0, penetrationBonus);
-    public IReadOnlyList<WeaponUpgradeEffect> Effects => effects;
+    [Header("追加効果")]
+    [SerializeField] private List<WeaponUpgradeEffect> _effects = new();
 }
 
 /// <summary>
@@ -43,35 +42,20 @@ public sealed class WeaponUpgradeStage
 /// </summary>
 public abstract class WeaponData : ScriptableObject
 {
-    [SerializeField]
-    private WeaponStats stats = new();
-
-    [SerializeField]
-    private Weapon weaponPrefab;
-
-    [Header("星2～5の固定強化")]
-    [Tooltip("星2～最大星を1つずつ登録します。固有効果は各段階の追加効果に登録します。")]
-    [SerializeField]
-    private List<WeaponUpgradeStage> upgradeStages = new();
-
-    [Header("星5到達後")]
-    [Tooltip("繰り返し取得するたびに加算する攻撃倍率。0.15で+15%")]
-    [SerializeField, Min(0.001f)]
-    private float postMaxDamageMultiplierBonus = 0.15f;
-
-    public WeaponStats Stats => stats;
-    public Weapon WeaponPrefab => weaponPrefab;
-    public int MaxStarLevel => Mathf.Clamp(stats.MaxEnchantLevel, 1, 5);
-    public float PostMaxDamageMultiplierBonus => Mathf.Max(0.001f, postMaxDamageMultiplierBonus);
+    public WeaponStats Stats => _stats;
+    public Weapon WeaponPrefab => _weaponPrefab;
+    public bool OrbitEnabled => _orbitEnabled;
+    public int MaxStarLevel => Mathf.Clamp(_stats.MaxEnchantLevel, 1, 5);
+    public float PostMaxDamageMultiplierBonus => Mathf.Max(0.001f, _postMaxDamageMultiplierBonus);
 
     public WeaponUpgradeStage GetUpgradeForStar(int starLevel)
     {
-        if (upgradeStages == null)
+        if (_upgradeStages == null)
         {
             return null;
         }
 
-        foreach (WeaponUpgradeStage stage in upgradeStages)
+        foreach (WeaponUpgradeStage stage in _upgradeStages)
         {
             if (stage != null && stage.StarLevel == starLevel)
             {
@@ -81,4 +65,24 @@ public abstract class WeaponData : ScriptableObject
 
         return null;
     }
+
+    [SerializeField]
+    private WeaponStats _stats = new();
+
+    [SerializeField]
+    private Weapon _weaponPrefab;
+
+    [Tooltip("オンでプレイヤーの周りを公転し、オフで装備位置に固定します。")]
+    [SerializeField]
+    private bool _orbitEnabled = true;
+
+    [Header("星2～5の固定強化")]
+    [Tooltip("星2～最大星を1つずつ登録します。固有効果は各段階の追加効果に登録します。")]
+    [SerializeField]
+    private List<WeaponUpgradeStage> _upgradeStages = new();
+
+    [Header("星5到達後")]
+    [Tooltip("繰り返し取得するたびに加算する攻撃倍率。0.15で+15%")]
+    [SerializeField, Min(0.001f)]
+    private float _postMaxDamageMultiplierBonus = 0.15f;
 }

@@ -11,55 +11,78 @@ public sealed class WaveController : MonoBehaviour
     public event Action<int> WaveEnded;
     public event Action SurvivalEnded;
 
-    [SerializeField]
-    private WaveSequenceData sequenceData;
-
-    [SerializeField]
-    private EnemySpawner enemySpawner;
-
-    [SerializeField]
-    private PlayerPresenter playerPresenter;
-
-    [SerializeField]
-    private bool playOnStart = true;
-
-    private readonly List<EnemySpawnPlan> spawnPlans = new();
-    private readonly Dictionary<string, int> enemyCounts = new();
-    private readonly HashSet<WaveEnemyHandle> aliveEnemies = new();
-
-    private WaveState state = WaveState.Idle;
-
-    private int waveIndex;
-    private int lastStartedWaveNumber = 1;
-    private int nextSpawnIndex;
-
-    private float waveElapsedTime;
-    private float intervalRemainingTime;
-    private EnemyStatScale currentEnemyStatScale = EnemyStatScale.Default;
-
-    public int CurrentWaveNumber => waveIndex + 1;
-    public int ReachedWaveNumber => Mathf.Max(1, lastStartedWaveNumber);
-    public int AliveEnemyCount => aliveEnemies.Count;
+    public int CurrentWaveNumber => _waveIndex + 1;
+    public int ReachedWaveNumber => Mathf.Max(1, _lastStartedWaveNumber);
+    public int AliveEnemyCount => _aliveEnemies.Count;
 
     public float WaveRemainingTime
     {
         get
         {
-            if (sequenceData == null)
+            if (_sequenceData == null)
             {
                 return 0f;
             }
 
             return Mathf.Max(
                 0f,
-                sequenceData.WaveDuration - waveElapsedTime
+                _sequenceData.WaveDuration - _waveElapsedTime
             );
         }
     }
 
+    /// <summary>
+    /// 一番初めのウェーブを開始する
+    /// </summary>
+    public void StartSequence()
+    {
+        if (!CanStartSequence())
+        {
+            return;
+        }
+
+        _waveIndex = 0;
+        BeginWave();
+    }
+
+    /// <summary>
+    /// ウェーブを止める
+    /// </summary>
+    public void StopSequence()
+    {
+        _spawnPlans.Clear();
+        _state = WaveState.Idle;
+    }
+
+    [SerializeField]
+    private WaveSequenceData _sequenceData;
+
+    [SerializeField]
+    private EnemySpawner _enemySpawner;
+
+    [SerializeField]
+    private PlayerPresenter _playerPresenter;
+
+    [SerializeField]
+    private bool _playOnStart = true;
+
+    private readonly List<EnemySpawnPlan> _spawnPlans = new();
+    private readonly Dictionary<string, int> _enemyCounts = new();
+    private readonly HashSet<WaveEnemyHandle> _aliveEnemies = new();
+
+    private WaveState _state = WaveState.Idle;
+
+    private int _waveIndex;
+    private int _lastStartedWaveNumber = 1;
+    private int _nextSpawnIndex;
+
+    private float _waveElapsedTime;
+    private float _intervalRemainingTime;
+    private EnemyStatScale _currentEnemyStatScale = EnemyStatScale.Default;
+
     private void Start()
     {
-        if (playOnStart)
+        if (_playOnStart)
         {
             StartSequence();
         }
@@ -67,17 +90,17 @@ public sealed class WaveController : MonoBehaviour
 
     private void OnEnable()
     {
-        if (playerPresenter != null)
+        if (_playerPresenter != null)
         {
-            playerPresenter.PlayerDied += OnPlayerDied;
+            _playerPresenter.PlayerDied += OnPlayerDied;
         }
     }
 
     private void OnDisable()
     {
-        if (playerPresenter != null)
+        if (_playerPresenter != null)
         {
-            playerPresenter.PlayerDied -= OnPlayerDied;
+            _playerPresenter.PlayerDied -= OnPlayerDied;
         }
     }
 
@@ -88,7 +111,7 @@ public sealed class WaveController : MonoBehaviour
             return;
         }
 
-        switch (state)
+        switch (_state)
         {
             case WaveState.Running:
                 UpdateWave(Time.deltaTime);
@@ -106,66 +129,43 @@ public sealed class WaveController : MonoBehaviour
     }
 
     /// <summary>
-    /// 一番初めのウェーブを開始する
-    /// </summary>
-    public void StartSequence()
-    {
-        if (!CanStartSequence())
-        {
-            return;
-        }
-
-        waveIndex = 0;
-        BeginWave();
-    }
-
-    /// <summary>
-    /// ウェーブを止める
-    /// </summary>
-    public void StopSequence()
-    {
-        spawnPlans.Clear();
-        state = WaveState.Idle;
-    }
-
-    /// <summary>
     /// スタートに必要な情報が残っているのかを確認する
     /// </summary>
     /// <returns></returns>
     private bool CanStartSequence()
     {
-        if (sequenceData == null)
+        if (_sequenceData == null)
         {
             Debug.LogWarning("WaveSequenceDataが設定されていません。");
             return false;
         }
 
-        if (enemySpawner == null || !enemySpawner.IsReady)
+        if (_enemySpawner == null || !_enemySpawner.IsReady)
         {
             Debug.LogWarning("EnemySpawnerとシーン上のGameObjectPoolを設定してください。", this);
             return false;
         }
 
-        if (playerPresenter == null)
+        if (_playerPresenter == null)
         {
             Debug.LogWarning("PlayerPresenterが設定されていません。");
             return false;
         }
 
-        if (sequenceData.Waves == null ||
-            sequenceData.Waves.Count == 0)
+        if (_sequenceData.Waves == null ||
+            _sequenceData.Waves.Count == 0)
         {
             Debug.LogWarning("Waveが1つも設定されていません。");
             return false;
         }
 
-        if (sequenceData.EnemyCatalog == null || sequenceData.WaveDuration <= 0f)
+        if (_sequenceData.EnemyCatalog == null || _sequenceData.WaveDuration <= 0f)
         {
             Debug.LogWarning("敵カタログと0より大きいWave時間を設定してください。", this);
             return false;
         }
 
-        foreach (WaveData wave in sequenceData.Waves)
+        foreach (WaveData wave in _sequenceData.Waves)
         {
             if (wave == null)
             {
@@ -176,22 +176,22 @@ public sealed class WaveController : MonoBehaviour
             foreach (WaveEnemyData enemy in wave.Enemies)
             {
                 if (enemy == null ||
-                    !sequenceData.EnemyCatalog.TryGetPrefab(enemy.EnemyId, out GameObject prefab) ||
+                    !_sequenceData.EnemyCatalog.TryGetPrefab(enemy.EnemyId, out GameObject prefab) ||
                     !IsValidEnemyPrefab(prefab))
                 {
-                    Debug.LogWarning("Waveの敵IDとPrefabのEnemyBase・PooledObject・WaveEnemyHandleを確認してください。", this);
+                    Debug.LogWarning("Waveの敵IDとPrefabのEnemyBase・WaveEnemyHandleを確認してください。", this);
                     return false;
                 }
             }
         }
 
-        foreach (EndlessEnemyGrowth growth in sequenceData.EndlessGrowth)
+        foreach (EndlessEnemyGrowth growth in _sequenceData.EndlessGrowth)
         {
             if (growth == null ||
-                !sequenceData.EnemyCatalog.TryGetPrefab(growth.EnemyId, out GameObject prefab) ||
+                !_sequenceData.EnemyCatalog.TryGetPrefab(growth.EnemyId, out GameObject prefab) ||
                 !IsValidEnemyPrefab(prefab))
             {
-                Debug.LogWarning("増加設定の敵IDとPrefabのEnemyBase・PooledObject・WaveEnemyHandleを確認してください。", this);
+                Debug.LogWarning("増加設定の敵IDとPrefabのEnemyBase・WaveEnemyHandleを確認してください。", this);
                 return false;
             }
         }
@@ -202,7 +202,6 @@ public sealed class WaveController : MonoBehaviour
     private static bool IsValidEnemyPrefab(GameObject prefab)
     {
         return prefab.TryGetComponent<EnemyBase>(out _) &&
-            prefab.TryGetComponent<PooledObject>(out _) &&
             prefab.TryGetComponent<WaveEnemyHandle>(out _);
     }
 
@@ -212,18 +211,18 @@ public sealed class WaveController : MonoBehaviour
     private void BeginWave()
     {
         //前のウェーブの時間や敵の生成位置を引き継がないようにリセット
-        waveElapsedTime = 0f;
-        lastStartedWaveNumber = CurrentWaveNumber;
-        nextSpawnIndex = 0;
+        _waveElapsedTime = 0f;
+        _lastStartedWaveNumber = CurrentWaveNumber;
+        _nextSpawnIndex = 0;
 
         CreateSpawnPlans();
-        currentEnemyStatScale = sequenceData.GetEnemyStatScale(CurrentWaveNumber);
+        _currentEnemyStatScale = _sequenceData.GetEnemyStatScale(CurrentWaveNumber);
 
-        state = WaveState.Running;
+        _state = WaveState.Running;
         WaveStarted?.Invoke(CurrentWaveNumber);
 
         // 0秒を割り当てられた敵をその場で生成する
-        if (state == WaveState.Running)
+        if (_state == WaveState.Running)
         {
             SpawnDueEnemies();
         }
@@ -234,14 +233,14 @@ public sealed class WaveController : MonoBehaviour
     /// </summary>
     private void CreateSpawnPlans()
     {
-        spawnPlans.Clear();
+        _spawnPlans.Clear();
 
-        float waveDuration = sequenceData.WaveDuration;
-        sequenceData.GetEnemyCounts(CurrentWaveNumber, enemyCounts);
+        float waveDuration = _sequenceData.WaveDuration;
+        _sequenceData.GetEnemyCounts(CurrentWaveNumber, _enemyCounts);
 
-        foreach (KeyValuePair<string, int> enemy in enemyCounts)
+        foreach (KeyValuePair<string, int> enemy in _enemyCounts)
         {
-            if (!sequenceData.EnemyCatalog.TryGetPrefab(enemy.Key, out GameObject prefab))
+            if (!_sequenceData.EnemyCatalog.TryGetPrefab(enemy.Key, out GameObject prefab))
             {
                 continue;
             }
@@ -255,7 +254,7 @@ public sealed class WaveController : MonoBehaviour
                     waveDuration
                 );
 
-                spawnPlans.Add(
+                _spawnPlans.Add(
                     new EnemySpawnPlan(
                         prefab,
                         spawnTime
@@ -264,28 +263,28 @@ public sealed class WaveController : MonoBehaviour
             }
         }
 
-        if (sequenceData.SpawnTiming == WaveSpawnTiming.EvenlySpaced)
+        if (_sequenceData.SpawnTiming == WaveSpawnTiming.EvenlySpaced)
         {
             // 敵の種類順に偏らないよう、先に全個体をシャッフルする。
-            for (int i = spawnPlans.Count - 1; i > 0; i--)
+            for (int i = _spawnPlans.Count - 1; i > 0; i--)
             {
                 int j = UnityEngine.Random.Range(0, i + 1);
-                EnemySpawnPlan temporary = spawnPlans[i];
-                spawnPlans[i] = spawnPlans[j];
-                spawnPlans[j] = temporary;
+                EnemySpawnPlan temporary = _spawnPlans[i];
+                _spawnPlans[i] = _spawnPlans[j];
+                _spawnPlans[j] = temporary;
             }
 
-            for (int i = 0; i < spawnPlans.Count; i++)
+            for (int i = 0; i < _spawnPlans.Count; i++)
             {
-                spawnPlans[i] = new EnemySpawnPlan(
-                    spawnPlans[i].EnemyPrefab,
-                    waveDuration * ((float)i / spawnPlans.Count)
+                _spawnPlans[i] = new EnemySpawnPlan(
+                    _spawnPlans[i].EnemyPrefab,
+                    waveDuration * ((float)i / _spawnPlans.Count)
                 );
             }
         }
         else
         {
-            spawnPlans.Sort((left, right) => left.SpawnTime.CompareTo(right.SpawnTime));
+            _spawnPlans.Sort((left, right) => left.SpawnTime.CompareTo(right.SpawnTime));
         }
     }
 
@@ -295,14 +294,14 @@ public sealed class WaveController : MonoBehaviour
     /// <param name="deltaTime"></param>
     private void UpdateWave(float deltaTime)
     {
-        waveElapsedTime = Mathf.Min(
-            waveElapsedTime + deltaTime,
-            sequenceData.WaveDuration
+        _waveElapsedTime = Mathf.Min(
+            _waveElapsedTime + deltaTime,
+            _sequenceData.WaveDuration
         );
 
         SpawnDueEnemies();
 
-        if (waveElapsedTime >= sequenceData.WaveDuration)
+        if (_waveElapsedTime >= _sequenceData.WaveDuration)
         {
             FinishWave();
         }
@@ -313,17 +312,17 @@ public sealed class WaveController : MonoBehaviour
     /// </summary>
     private void SpawnDueEnemies()
     {
-        while (state == WaveState.Running && nextSpawnIndex < spawnPlans.Count)
+        while (_state == WaveState.Running && _nextSpawnIndex < _spawnPlans.Count)
         {
             EnemySpawnPlan plan =
-                spawnPlans[nextSpawnIndex];
+                _spawnPlans[_nextSpawnIndex];
 
-            if (plan.SpawnTime > waveElapsedTime)
+            if (plan.SpawnTime > _waveElapsedTime)
             {
                 break;
             }
 
-            nextSpawnIndex++;
+            _nextSpawnIndex++;
             SpawnEnemy(plan.EnemyPrefab);
         }
     }
@@ -335,14 +334,14 @@ public sealed class WaveController : MonoBehaviour
     private void SpawnEnemy(GameObject enemyPrefab)
     {
         WaveEnemyHandle enemy =
-            enemySpawner.Spawn(enemyPrefab, currentEnemyStatScale);
+            _enemySpawner.Spawn(enemyPrefab, _currentEnemyStatScale);
 
         if (ReferenceEquals(enemy, null))
         {
             return;
         }
 
-        if (aliveEnemies.Add(enemy))
+        if (_aliveEnemies.Add(enemy))
         {
             enemy.Removed += OnEnemyRemoved;
         }
@@ -361,7 +360,7 @@ public sealed class WaveController : MonoBehaviour
         }
 
         enemy.Removed -= OnEnemyRemoved;
-        aliveEnemies.Remove(enemy);
+        _aliveEnemies.Remove(enemy);
     }
 
     /// <summary>
@@ -369,20 +368,20 @@ public sealed class WaveController : MonoBehaviour
     /// </summary>
     private void FinishWave()
     {
-        if (state != WaveState.Running)
+        if (_state != WaveState.Running)
         {
             return;
         }
 
-        spawnPlans.Clear();
+        _spawnPlans.Clear();
 
         int finishedWaveNumber = CurrentWaveNumber;
-        waveIndex++;
+        _waveIndex++;
 
-        intervalRemainingTime =
-            sequenceData.IntervalBetweenWaves;
+        _intervalRemainingTime =
+            _sequenceData.IntervalBetweenWaves;
 
-        state = WaveState.Intermission;
+        _state = WaveState.Intermission;
         WaveEnded?.Invoke(finishedWaveNumber);
         Debug.Log($"Wave {finishedWaveNumber} 終了");
     }
@@ -393,9 +392,9 @@ public sealed class WaveController : MonoBehaviour
     /// <param name="deltaTime"></param>
     private void UpdateIntermission(float deltaTime)
     {
-        intervalRemainingTime -= deltaTime;
+        _intervalRemainingTime -= deltaTime;
 
-        if (intervalRemainingTime <= 0f)
+        if (_intervalRemainingTime <= 0f)
         {
             BeginWave();
         }
@@ -403,7 +402,7 @@ public sealed class WaveController : MonoBehaviour
 
     private void OnPlayerDied()
     {
-        if (state == WaveState.Idle)
+        if (_state == WaveState.Idle)
         {
             return;
         }
@@ -418,7 +417,7 @@ public sealed class WaveController : MonoBehaviour
     /// </summary>
     private void UnsubscribeAllEnemies()
     {
-        foreach (WaveEnemyHandle enemy in aliveEnemies)
+        foreach (WaveEnemyHandle enemy in _aliveEnemies)
         {
             if (enemy != null)
             {
@@ -426,7 +425,7 @@ public sealed class WaveController : MonoBehaviour
             }
         }
 
-        aliveEnemies.Clear();
+        _aliveEnemies.Clear();
     }
 
     /// <summary>

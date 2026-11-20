@@ -2,59 +2,62 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-/// <summary>WeaponMountを中心に装備中の武器を水平に公転させる。</summary>
+/// <summary>公転が有効な武器をWeaponMountの周りで水平に移動させる。</summary>
 [DefaultExecutionOrder(-10)] // 武器の攻撃処理より前に位置を更新する。
 public sealed class SpinningWeapon : MonoBehaviour
 {
-    [SerializeField] private WeaponManager weaponManager;
+    [SerializeField] private WeaponManager _weaponManager;
 
-    [SerializeField] private float leftTurnX = -1f;
+    [SerializeField] private float _leftTurnX = -1f;
 
-    [SerializeField] private float rightTurnX = 1f;
+    [SerializeField] private float _rightTurnX = 1f;
 
-    [SerializeField] private float rotationSpeed = 100f;
+    [SerializeField] private float _rotationSpeed = 100f;
 
-    [SerializeField] private SpriteRenderer playerRenderer;
+    [SerializeField] private SpriteRenderer _playerRenderer;
 
-    private readonly Dictionary<Weapon, (SortingGroup Group, int Layer, int Order, bool Enabled)> originalSorting = new();
-    private readonly List<(SortingGroup Group, float Depth, bool IsBehind)> depthOrder = new();
-    private float orbitProgress;
+    private readonly Dictionary<Weapon, (SortingGroup Group, int Layer, int Order, bool Enabled)> _originalSorting = new();
+    private readonly List<(SortingGroup Group, float Depth, bool IsBehind)> _depthOrder = new();
+    private float _orbitProgress;
 
     private void OnEnable()
     {
-        if (weaponManager == null)
+        if (_weaponManager == null)
             return;
 
-        weaponManager.WeaponAdded += OnWeaponAdded;
-        weaponManager.WeaponRemoved += OnWeaponRemoved;
+        _weaponManager.WeaponAdded += OnWeaponAdded;
+        _weaponManager.WeaponRemoved += OnWeaponRemoved;
     }
 
     private void Update() => UpdateOrbit(Time.deltaTime);
 
     private void UpdateOrbit(float deltaTime)
     {
-        if (weaponManager == null || Mathf.Approximately(leftTurnX, rightTurnX))
+        if (_weaponManager == null || Mathf.Approximately(_leftTurnX, _rightTurnX))
         {
             ResetOrbit();
             return;
         }
 
-        IReadOnlyList<Weapon> weapons = weaponManager.Weapons;
-        depthOrder.Clear();
+        IReadOnlyList<Weapon> weapons = _weaponManager.Weapons;
+        _depthOrder.Clear();
         int weaponCount = 0;
         for (int i = 0; i < weapons.Count; i++)
         {
-            if (weapons[i] != null)
+            Weapon weapon = weapons[i];
+            if (CanOrbit(weapon))
                 weaponCount++;
+            else
+                ReleaseFromOrbit(weapon);
         }
 
         if (weaponCount == 0)
             return;
 
         // 0～1で右から左へ、1～2で左から右へ移動する。
-        orbitProgress = (orbitProgress + rotationSpeed * deltaTime / 180f) % 2f;
-        if (orbitProgress < 0f)
-            orbitProgress += 2f;
+        _orbitProgress = (_orbitProgress + _rotationSpeed * deltaTime / 180f) % 2f;
+        if (_orbitProgress < 0f)
+            _orbitProgress += 2f;
 
         Vector3 center = transform.position;
         float slotSpacing = 2f / weaponCount;
@@ -62,32 +65,37 @@ public sealed class SpinningWeapon : MonoBehaviour
         for (int i = 0; i < weapons.Count; i++)
         {
             Weapon weapon = weapons[i];
-            if (weapon == null)
+            if (!CanOrbit(weapon))
                 continue;
 
-            float progress = (orbitProgress + slotSpacing * slotIndex) % 2f;
+            float progress = (_orbitProgress + slotSpacing * slotIndex) % 2f;
             slotIndex++;
             bool isBehind = progress < 1f;
             float rightToLeft = isBehind ? progress : 2f - progress;
-            float x = Mathf.SmoothStep(rightTurnX, leftTurnX, rightToLeft);
+            float x = Mathf.SmoothStep(_rightTurnX, _leftTurnX, rightToLeft);
 
             // ワールド座標で配置し、プレイヤーの左右反転で軌道が反転するのを防ぐ。
             weapon.transform.position = center + Vector3.right * x;
             float depth = Mathf.Min(rightToLeft, 1f - rightToLeft);
-            depthOrder.Add((GetSortingGroup(weapon), depth, isBehind));
+            _depthOrder.Add((GetSortingGroup(weapon), depth, isBehind));
         }
 
         // プレイヤーに近い順に、奥は描画順を下げ、手前は上げる。
-        depthOrder.Sort((left, right) => left.Depth.CompareTo(right.Depth));
-        int playerLayer = playerRenderer != null ? playerRenderer.sortingLayerID : 0;
-        int playerOrder = playerRenderer != null ? playerRenderer.sortingOrder : 0;
+        _depthOrder.Sort((left, right) => left.Depth.CompareTo(right.Depth));
+        int playerLayer = _playerRenderer != null ? _playerRenderer.sortingLayerID : 0;
+        int playerOrder = _playerRenderer != null ? _playerRenderer.sortingOrder : 0;
         int rearOrder = playerOrder;
         int frontOrder = playerOrder;
-        foreach (var slot in depthOrder)
+        foreach (var slot in _depthOrder)
         {
             slot.Group.sortingLayerID = playerLayer;
             slot.Group.sortingOrder = slot.IsBehind ? --rearOrder : ++frontOrder;
         }
+    }
+
+    private static bool CanOrbit(Weapon weapon)
+    {
+        return weapon != null && weapon.WeaponData != null && weapon.WeaponData.OrbitEnabled;
     }
 
     /// <summary>
@@ -97,14 +105,14 @@ public sealed class SpinningWeapon : MonoBehaviour
     /// <returns></returns>
     private SortingGroup GetSortingGroup(Weapon weapon)
     {
-        if (originalSorting.TryGetValue(weapon, out var saved) && saved.Group != null)
+        if (_originalSorting.TryGetValue(weapon, out var saved) && saved.Group != null)
             return saved.Group;
 
         bool hadGroup = weapon.TryGetComponent(out SortingGroup group);
         if (!hadGroup)
             group = weapon.gameObject.AddComponent<SortingGroup>();
 
-        originalSorting[weapon] = (group, group.sortingLayerID, group.sortingOrder, hadGroup && group.enabled);
+        _originalSorting[weapon] = (group, group.sortingLayerID, group.sortingOrder, hadGroup && group.enabled);
         group.enabled = true;
         return group;
     }
@@ -113,18 +121,22 @@ public sealed class SpinningWeapon : MonoBehaviour
 
     private void OnWeaponRemoved(Weapon weapon)
     {
-        if (!ReferenceEquals(weapon, null) && originalSorting.Remove(weapon, out var saved))
-            RestoreWeapon(weapon, saved);
-
+        ReleaseFromOrbit(weapon);
         UpdateOrbit(0f);
+    }
+
+    private void ReleaseFromOrbit(Weapon weapon)
+    {
+        if (!ReferenceEquals(weapon, null) && _originalSorting.Remove(weapon, out var saved))
+            RestoreWeapon(weapon, saved);
     }
 
     private void OnDisable()
     {
-        if (weaponManager != null)
+        if (_weaponManager != null)
         {
-            weaponManager.WeaponAdded -= OnWeaponAdded;
-            weaponManager.WeaponRemoved -= OnWeaponRemoved;
+            _weaponManager.WeaponAdded -= OnWeaponAdded;
+            _weaponManager.WeaponRemoved -= OnWeaponRemoved;
         }
 
         ResetOrbit();
@@ -132,11 +144,11 @@ public sealed class SpinningWeapon : MonoBehaviour
 
     private void ResetOrbit()
     {
-        foreach (var entry in originalSorting)
+        foreach (var entry in _originalSorting)
             RestoreWeapon(entry.Key, entry.Value);
 
-        originalSorting.Clear();
-        depthOrder.Clear();
+        _originalSorting.Clear();
+        _depthOrder.Clear();
     }
 
     private void RestoreWeapon(Weapon weapon, (SortingGroup Group, int Layer, int Order, bool Enabled) saved)

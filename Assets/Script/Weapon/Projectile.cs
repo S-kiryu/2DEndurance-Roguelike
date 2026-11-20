@@ -7,66 +7,24 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D))]
 public sealed class Projectile : MonoBehaviour, IPoolable
 {
-    private readonly HashSet<(IDamageable Target, int SpawnVersion)> damagedTargets = new();
-    private Rigidbody2D body;
-    private Camera mainCamera;
-    private int damage;
-    private int remainingPenetrations;
-    private GameObject owner;
-    private WeaponContext weaponContext;
-
-    private void Awake()
-    {
-        body = GetComponent<Rigidbody2D>();
-        mainCamera = Camera.main;
-        body.gravityScale = 0f;
-        body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-        GetComponent<BoxCollider2D>().isTrigger = true;
-    }
-
     public void OnPoolSpawned()
     {
         // 初回貸出はAwake前の場合がある。
-        body = GetComponent<Rigidbody2D>();
-        damagedTargets.Clear();
-        damage = 0;
-        remainingPenetrations = 0;
-        owner = null;
-        weaponContext = null;
+        _body = GetComponent<Rigidbody2D>();
+        _damagedTargets.Clear();
+        _damage = 0;
+        _remainingPenetrations = 0;
+        _owner = null;
+        _weaponContext = null;
     }
 
     public void OnPoolDespawned()
     {
-        damagedTargets.Clear();
-        owner = null;
-        weaponContext = null;
-        body.linearVelocity = Vector2.zero;
-        body.angularVelocity = 0f;
-    }
-
-    private void LateUpdate()
-    {
-        if (mainCamera == null)
-        {
-            mainCamera = Camera.main;
-
-            if (mainCamera == null)
-            {
-                return;
-            }
-        }
-
-        // Sceneビューの表示範囲ではなく、ゲーム用カメラの画面内かを判定する。
-        Vector3 viewportPosition =
-            mainCamera.WorldToViewportPoint(transform.position);
-
-        if (viewportPosition.x < 0f || viewportPosition.x > 1f ||
-            viewportPosition.y < 0f || viewportPosition.y > 1f ||
-            viewportPosition.z < mainCamera.nearClipPlane ||
-            viewportPosition.z > mainCamera.farClipPlane)
-        {
-            GameObjectPool.Despawn(gameObject);
-        }
+        _damagedTargets.Clear();
+        _owner = null;
+        _weaponContext = null;
+        _body.linearVelocity = Vector2.zero;
+        _body.angularVelocity = 0f;
     }
 
     public void Initialize(
@@ -77,11 +35,53 @@ public sealed class Projectile : MonoBehaviour, IPoolable
         GameObject projectileOwner,
         WeaponContext context = null)
     {
-        damage = attackDamage;
-        remainingPenetrations = penetrationCount;
-        owner = projectileOwner;
-        weaponContext = context;
-        body.linearVelocity = direction.normalized * speed;
+        _damage = attackDamage;
+        _remainingPenetrations = penetrationCount;
+        _owner = projectileOwner;
+        _weaponContext = context;
+        _body.linearVelocity = direction.normalized * speed;
+    }
+
+    private readonly HashSet<IDamageable> _damagedTargets = new();
+    private Rigidbody2D _body;
+    private Camera _mainCamera;
+    private int _damage;
+    private int _remainingPenetrations;
+    private GameObject _owner;
+    private WeaponContext _weaponContext;
+
+    private void Awake()
+    {
+        _body = GetComponent<Rigidbody2D>();
+        _mainCamera = Camera.main;
+        _body.gravityScale = 0f;
+        _body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        GetComponent<BoxCollider2D>().isTrigger = true;
+    }
+
+    private void LateUpdate()
+    {
+        if (_mainCamera == null)
+        {
+            _mainCamera = Camera.main;
+
+            if (_mainCamera == null)
+            {
+                return;
+            }
+        }
+
+        // Sceneビューの表示範囲ではなく、ゲーム用カメラの画面内かを判定する。
+        Vector3 viewportPosition =
+            _mainCamera.WorldToViewportPoint(transform.position);
+
+        if (viewportPosition.x < 0f || viewportPosition.x > 1f ||
+            viewportPosition.y < 0f || viewportPosition.y > 1f ||
+            viewportPosition.z < _mainCamera.nearClipPlane ||
+            viewportPosition.z > _mainCamera.farClipPlane)
+        {
+            GameObjectPool.Despawn(gameObject);
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -91,36 +91,28 @@ public sealed class Projectile : MonoBehaviour, IPoolable
             return;
         }
 
-        if (owner != null && other.transform.root.gameObject == owner)
+        if (_owner != null && other.transform.root.gameObject == _owner)
         {
             return;
         }
 
         IDamageable target = other.GetComponentInParent<IDamageable>();
-
-        if (target == null)
+        if (target == null || !_damagedTargets.Add(target))
         {
             return;
         }
 
-        PooledObject pooledTarget = other.GetComponentInParent<PooledObject>();
-        int spawnVersion = pooledTarget != null ? pooledTarget.SpawnVersion : 0;
-        if (!damagedTargets.Add((target, spawnVersion)))
-        {
-            return;
-        }
-
-        if (weaponContext != null)
-            weaponContext.DealDamage(other, damage);
+        if (_weaponContext != null)
+            _weaponContext.DealDamage(other, _damage);
         else
-            target.TakeDamage(damage);
+            target.TakeDamage(_damage);
 
-        if (remainingPenetrations <= 0)
+        if (_remainingPenetrations <= 0)
         {
             GameObjectPool.Despawn(gameObject);
             return;
         }
 
-        remainingPenetrations--;
+        _remainingPenetrations--;
     }
 }

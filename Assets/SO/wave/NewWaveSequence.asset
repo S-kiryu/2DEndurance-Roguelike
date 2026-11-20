@@ -12,22 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 396dd3a6991ee7e42be200e9421328fd, type: 3}
   m_Name: NewWaveSequence
   m_EditorClassIdentifier: Assembly-CSharp::WaveSequenceData
-  enemyCatalog: {fileID: 11400000, guid: a616321fc38823b9bec19e45b2a62e30, type: 2}
-  waveDuration: 10
-  intervalBetweenWaves: 3
-  spawnTiming: 0
-  waves:
-  - enemies:
-    - enemyId: siranai
-      count: 5
-  endlessGrowth:
-  - enemyId: siranai
-    increaseCount: 1
-    increaseEveryWaves: 1
-  endlessStatGrowth:
-    enabled: 1
-    increaseEveryWaves: 1
-    healthIncreasePerStep: 0.15
-    damageIncreasePerStep: 0.1
-    growthMode: 0
-    roundingMode: 0
+  _enemyCatalog: {fileID: 11400000, guid: a616321fc38823b9bec19e45b2a62e30, type: 2}
+  _waveDuration: 10
+  _intervalBetweenWaves: 3
+  _spawnTiming: 0
+  _waves:
+  - _enemies:
+    - _enemyId: siranai
+      _count: 5
+    - _enemyId: dool
+      _count: 5
+    - _enemyId: boon
+      _count: 1
+  _endlessGrowth:
+  - _enemyId: siranai
+    _increaseCount: 1
+    _increaseEveryWaves: 1
+  _endlessStatGrowth:
+    _enabled: 1
+    _increaseEveryWaves: 1
+    _healthIncreasePerStep: 0.15
+    _damageIncreasePerStep: 0.1
+    _growthMode: 0
+    _roundingMode: 0

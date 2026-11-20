@@ -8,26 +8,26 @@ public sealed class TitleScreenUI : MonoBehaviour
     public const string ScenePath = "Assets/Scenes/TitleScene.unity";
     public const string GameplayScenePath = "Assets/Scenes/SampleScene.unity";
 
-    [SerializeField] private Button startButton;
-    private bool isStarting;
+    public void StartRun()
+    {
+        if (_isStarting) return;
+        _isStarting = true;
+        _startButton.interactable = false;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(GameplayScenePath);
+    }
+
+    [SerializeField] private Button _startButton;
+    private bool _isStarting;
 
     private void Awake()
     {
         Time.timeScale = 1f;
-        startButton.onClick.AddListener(StartRun);
+        _startButton.onClick.AddListener(StartRun);
     }
 
     private void OnDestroy()
     {
-        startButton.onClick.RemoveListener(StartRun);
-    }
-
-    public void StartRun()
-    {
-        if (isStarting) return;
-        isStarting = true;
-        startButton.interactable = false;
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(GameplayScenePath);
+        _startButton.onClick.RemoveListener(StartRun);
     }
 }

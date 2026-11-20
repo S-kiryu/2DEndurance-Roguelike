@@ -8,11 +8,11 @@ public sealed class WaveEnemyHandle : MonoBehaviour
 {
     public event Action<WaveEnemyHandle> Removed;
 
-    private bool removed;
+    private bool _removed;
 
     private void OnEnable()
     {
-        removed = false;
+        _removed = false;
     }
 
     private void OnDisable()
@@ -27,12 +27,12 @@ public sealed class WaveEnemyHandle : MonoBehaviour
 
     private void NotifyRemoved()
     {
-        if (removed)
+        if (_removed)
         {
             return;
         }
 
-        removed = true;
+        _removed = true;
         Removed?.Invoke(this);
         Removed = null;
     }

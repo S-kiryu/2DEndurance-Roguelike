@@ -6,12 +6,6 @@ using UnityEngine;
 /// </summary>
 public class Gun : Weapon
 {
-    [SerializeField]
-    private Transform firePoint;
-
-    private GunData gunData;
-    private bool isBursting;
-
     protected override bool RequiresPool => true;
 
     protected override bool IsCompatibleData(WeaponData weaponData)
@@ -19,59 +13,85 @@ public class Gun : Weapon
         return weaponData is GunData;
     }
 
+    protected override string GetDataError(WeaponData weaponData)
+    {
+        return ((GunData)weaponData).ProjectilePrefab == null ? "弾のPrefabが設定されていません。" : null;
+    }
+
     protected override void OnInitialized()
     {
-        StopAllCoroutines();
-        isBursting = false;
-        gunData = (GunData)Data;
+        ResetAttackState();
+        _gunData = (GunData)Data;
     }
 
     protected override void OnDisable()
     {
         base.OnDisable();
-        StopAllCoroutines();
-        isBursting = false;
+        ResetAttackState();
     }
 
     protected override bool TryAttack()
     {
-        if (isBursting || gunData.ProjectilePrefab == null || ObjectPool == null || !ObjectPool.IsReady)
+        if (_isBursting || _gunData.ProjectilePrefab == null || ObjectPool == null || !ObjectPool.IsReady)
         {
             return false;
         }
 
         bool fired = FireVolley();
-        if (fired && gunData.BurstCount > 1)
+        if (fired && _gunData.BurstCount > 1)
         {
-            StartCoroutine(FireRemainingBurst(gunData.BurstCount - 1));
+            StartCoroutine(FireRemainingBurst(_gunData.BurstCount - 1));
         }
+
         return fired;
+    }
+
+    [SerializeField]
+    private Transform _firePoint;
+    [SerializeField]
+    private GameObject _effect;
+    [SerializeField, Min(0f)]
+    private float _muzzleEffectDuration = 0.05f;
+
+    private GunData _gunData;
+    private bool _isBursting;
+    private Coroutine _muzzleEffectRoutine;
+
+    private void ResetAttackState()
+    {
+        StopAllCoroutines();
+        _isBursting = false;
+        _muzzleEffectRoutine = null;
+        if (_effect != null)
+        {
+            _effect.SetActive(false);
+        }
     }
 
     private IEnumerator FireRemainingBurst(int remaining)
     {
-        isBursting = true;
+        _isBursting = true;
         for (int i = 0; i < remaining; i++)
         {
-            yield return new WaitForSeconds(gunData.BurstInterval);
+            yield return new WaitForSeconds(_gunData.BurstInterval);
             if (ObjectPool == null || !ObjectPool.IsReady || !FireVolley())
             {
                 break;
             }
         }
-        isBursting = false;
+        _isBursting = false;
     }
 
     private bool FireVolley()
     {
         NotifyAttackStarted();
-        Transform spawnPoint = firePoint != null ? firePoint : transform;
+        Transform spawnPoint = _firePoint != null ? _firePoint : transform;
         Vector2 baseDirection = transform.lossyScale.x < 0f
             ? -spawnPoint.right
             : spawnPoint.right;
 
-        int projectileCount = gunData.ProjectileCount + AdditionalProjectiles;
-        float spread = Mathf.Clamp(gunData.SpreadAngle + SpreadAngleBonus, 0f, 90f);
+        int projectileCount = _gunData.ProjectileCount + AdditionalProjectiles;
+        float spread = Mathf.Clamp(_gunData.SpreadAngle + SpreadAngleBonus, 0f, 90f);
         bool fired = false;
 
         for (int i = 0; i < projectileCount; i++)
@@ -83,7 +103,7 @@ public class Gun : Weapon
             Vector2 direction = Quaternion.Euler(0f, 0f, angle) * baseDirection;
 
             Projectile projectile = ObjectPool.Spawn(
-                gunData.ProjectilePrefab,
+                _gunData.ProjectilePrefab,
                 spawnPoint.position,
                 Quaternion.FromToRotation(Vector3.right, direction)
             );
@@ -95,16 +115,47 @@ public class Gun : Weapon
 
             projectile.Initialize(
                 direction,
-                gunData.ProjectileSpeed * WeaponProjectileSpeedMultiplier,
+                _gunData.ProjectileSpeed * WeaponProjectileSpeedMultiplier,
                 CalculateDamage(),
-                gunData.PenetrationCount + WeaponPenetrationBonus,
-                transform.root.gameObject,
+                _gunData.PenetrationCount + WeaponPenetrationBonus,
+                Context.Owner,
                 Context
             );
             fired = true;
         }
 
+        if (fired && _effect != null && isActiveAndEnabled)
+        {
+            if (_muzzleEffectRoutine != null)
+            {
+                StopCoroutine(_muzzleEffectRoutine);
+            }
+
+            float shotInterval = _gunData.BurstCount > 1
+                ? Mathf.Min(EffectiveAttackInterval, _gunData.BurstInterval)
+                : EffectiveAttackInterval;
+            // 次の発射までにフラッシュが消えている時間を残す。
+            float duration = Mathf.Min(_muzzleEffectDuration, shotInterval * 0.5f);
+            _muzzleEffectRoutine = StartCoroutine(PlayMuzzleEffect(duration));
+        }
+
         NotifyAttackFinished();
         return fired;
+    }
+
+    /// <summary>
+    /// フラッシュ演出の関数
+    /// </summary>
+    /// <param name="duration"></param>
+    /// <returns></returns>
+    private IEnumerator PlayMuzzleEffect(float duration)
+    {
+        _effect.SetActive(true);
+        yield return new WaitForSeconds(duration);
+        if (_effect != null)
+        {
+            _effect.SetActive(false);
+        }
+        _muzzleEffectRoutine = null;
     }
 }

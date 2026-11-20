@@ -9,24 +9,22 @@ using UnityEngine;
 )]
 public sealed class SwordData : WeaponData
 {
-    [Header("ナタ（プレイヤー本体のアニメーション）")]
-    [SerializeField] private bool usePlayerAnimation;
-    [Tooltip("未設定の間は移動だけ切り替わり、攻撃しません。命中フレームにDealNataDamageイベントを追加してください。")]
-    [SerializeField] private AnimationClip playerAttackClip;
+    public bool UsePlayerAnimation => _usePlayerAnimation;
 
-    public bool UsePlayerAnimation => usePlayerAnimation;
-    public AnimationClip PlayerAttackClip => playerAttackClip;
+    public float AttackRange => _attackRange;
+    public float AttackAngle => _attackAngle;
+    public LayerMask TargetLayers => _targetLayers;
+
+    [Header("ナタ（プレイヤー本体のアニメーション）")]
+    [Tooltip("NataAttack ステート")]
+    [SerializeField] private bool _usePlayerAnimation;
 
     [SerializeField, Min(0f)]
-    private float attackRange = 1f;
+    private float _attackRange = 1f;
 
     [SerializeField, Range(0f, 360f)]
-    private float attackAngle = 90f;
+    private float _attackAngle = 90f;
 
     [SerializeField]
-    private LayerMask targetLayers;
-
-    public float AttackRange => attackRange;
-    public float AttackAngle => attackAngle;
-    public LayerMask TargetLayers => targetLayers;
+    private LayerMask _targetLayers;
 }

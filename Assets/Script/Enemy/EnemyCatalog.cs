@@ -8,11 +8,11 @@ using UnityEngine;
 [Serializable]
 public sealed class EnemyCatalogEntry
 {
-    [SerializeField] private string id;
-    [SerializeField] private GameObject prefab;
+    public string Id => _id;
+    public GameObject Prefab => _prefab;
 
-    public string Id => id;
-    public GameObject Prefab => prefab;
+    [SerializeField] private string _id;
+    [SerializeField] private GameObject _prefab;
 }
 
 /// <summary>
@@ -21,9 +21,7 @@ public sealed class EnemyCatalogEntry
 [CreateAssetMenu(fileName = "EnemyCatalog", menuName = "Enemy/Catalog")]
 public sealed class EnemyCatalog : ScriptableObject
 {
-    [SerializeField] private List<EnemyCatalogEntry> enemies = new();
-
-    public IReadOnlyList<EnemyCatalogEntry> Enemies => enemies;
+    public IReadOnlyList<EnemyCatalogEntry> Enemies => _enemies;
 
     /// <summary>
     ///  指定した識別IDに対応する敵のPrefabを取得する。
@@ -39,7 +37,7 @@ public sealed class EnemyCatalog : ScriptableObject
             return false;
         }
 
-        foreach (EnemyCatalogEntry enemy in enemies)
+        foreach (EnemyCatalogEntry enemy in _enemies)
         {
             if (enemy != null && enemy.Id == id)
             {
@@ -51,11 +49,13 @@ public sealed class EnemyCatalog : ScriptableObject
         return false;
     }
 
+    [SerializeField] private List<EnemyCatalogEntry> _enemies = new();
+
     private void OnValidate()
     {
         // 入れ間違いなどがないかを検証する
         var ids = new HashSet<string>();
-        foreach (EnemyCatalogEntry enemy in enemies)
+        foreach (EnemyCatalogEntry enemy in _enemies)
         {
             if (enemy == null || string.IsNullOrWhiteSpace(enemy.Id) ||
                 !ids.Add(enemy.Id) || enemy.Prefab == null)

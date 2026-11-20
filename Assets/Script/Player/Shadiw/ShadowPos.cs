@@ -2,14 +2,14 @@ using UnityEngine;
 
 public class ShadowPos : MonoBehaviour
 {
-    [SerializeField] private Transform playerTransform;
+    [SerializeField] private Transform _playerTransform;
 
 
     private void Update()
     {
-        if (playerTransform != null)
+        if (_playerTransform != null)
         {
-            Vector3 playerPosition = playerTransform.position;
+            Vector3 playerPosition = _playerTransform.position;
             transform.position = new Vector3(playerPosition.x, transform.position.y, transform.position.z);
         }
     }

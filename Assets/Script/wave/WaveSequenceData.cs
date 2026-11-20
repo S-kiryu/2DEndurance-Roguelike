@@ -8,42 +8,42 @@ using UnityEngine;
 [Serializable]
 public sealed class WaveEnemyData
 {
+    public string EnemyId => _enemyId;
+    public int Count => Mathf.Max(0, _count);
+
     [SerializeField]
-    private string enemyId;
+    private string _enemyId;
 
     [Min(0)]
     [SerializeField]
-    private int count = 1;
-
-    public string EnemyId => enemyId;
-    public int Count => Mathf.Max(0, count);
+    private int _count = 1;
 }
 
-/// <summary>全設定Waveの終了後だけ適用する、敵ごとの追加出現ルール。</summary>
+/// <summary>2周目以降に適用する、敵ごとの追加出現ルール。</summary>
 [Serializable]
 public sealed class EndlessEnemyGrowth
 {
-    [SerializeField]
-    private string enemyId;
-
-    [Tooltip("増加周期を迎えるたびに追加する数")]
-    [SerializeField, Min(0)]
-    private int increaseCount = 1;
-
-    [Tooltip("最終設定Waveから何Wave進むごとに増加するか")]
-    [SerializeField, Min(1)]
-    private int increaseEveryWaves = 1;
-
-    public string EnemyId => enemyId;
-    public int IncreaseCount => increaseCount;
-    public int IncreaseEveryWaves => Mathf.Max(1, increaseEveryWaves);
+    public string EnemyId => _enemyId;
+    public int IncreaseCount => _increaseCount;
+    public int IncreaseEveryWaves => Mathf.Max(1, _increaseEveryWaves);
 
     public int GetAdditionalCount(int wavesAfterFinal)
     {
         long increases = Mathf.Max(0, wavesAfterFinal) / IncreaseEveryWaves;
-        long total = increases * Mathf.Max(0, increaseCount);
+        long total = increases * Mathf.Max(0, _increaseCount);
         return (int)Math.Min(int.MaxValue, total);
     }
+
+    [SerializeField]
+    private string _enemyId;
+
+    [Tooltip("増加周期を迎えるたびに追加する数")]
+    [SerializeField, Min(0)]
+    private int _increaseCount = 1;
+
+    [Tooltip("1周目の終了から何Wave進むごとに出現数を増やすか")]
+    [SerializeField, Min(1)]
+    private int _increaseEveryWaves = 1;
 }
 
 public enum WaveSpawnTiming
@@ -52,128 +52,16 @@ public enum WaveSpawnTiming
     EvenlySpaced
 }
 
-public enum EnemyStatGrowthMode
-{
-    Linear,
-    Compound
-}
-
-public enum EnemyStatRoundingMode
-{
-    Round,
-    Floor,
-    Ceil
-}
-
-/// <summary>設定Wave終了後に、新しく出現する敵へ適用する戦闘ステータス成長。</summary>
-[Serializable]
-public sealed class EndlessEnemyStatGrowth
-{
-    [SerializeField]
-    private bool enabled;
-
-    [Tooltip("最終設定Waveから何Wave進むごとに倍率を1段階上げるか")]
-    [SerializeField, Min(1)]
-    private int increaseEveryWaves = 1;
-
-    [Tooltip("1段階ごとの最大HP増加率。0.15で+15%")]
-    [SerializeField, Min(0f)]
-    private float healthIncreasePerStep = 0.15f;
-
-    [Tooltip("1段階ごとの攻撃力増加率。0.1で+10%")]
-    [SerializeField, Min(0f)]
-    private float damageIncreasePerStep = 0.1f;
-
-    [SerializeField]
-    private EnemyStatGrowthMode growthMode = EnemyStatGrowthMode.Linear;
-
-    [SerializeField]
-    private EnemyStatRoundingMode roundingMode = EnemyStatRoundingMode.Round;
-
-    public bool Enabled => enabled;
-    public int IncreaseEveryWaves => Mathf.Max(1, increaseEveryWaves);
-    public float HealthIncreasePerStep => Mathf.Max(0f, healthIncreasePerStep);
-    public float DamageIncreasePerStep => Mathf.Max(0f, damageIncreasePerStep);
-    public EnemyStatGrowthMode GrowthMode => growthMode;
-    public EnemyStatRoundingMode RoundingMode => roundingMode;
-
-    public EnemyStatScale GetScale(int wavesAfterFinal)
-    {
-        if (!enabled || wavesAfterFinal <= 0)
-        {
-            return EnemyStatScale.Default;
-        }
-
-        int steps = wavesAfterFinal / IncreaseEveryWaves;
-        if (steps <= 0)
-        {
-            return EnemyStatScale.Default;
-        }
-
-        float healthMultiplier = GetMultiplier(HealthIncreasePerStep, steps);
-        float damageMultiplier = GetMultiplier(DamageIncreasePerStep, steps);
-        return new EnemyStatScale(healthMultiplier, damageMultiplier, roundingMode);
-    }
-
-    private float GetMultiplier(float increase, int steps)
-    {
-        return growthMode == EnemyStatGrowthMode.Compound
-            ? Mathf.Pow(1f + increase, steps)
-            : 1f + increase * steps;
-    }
-}
-
-/// <summary>敵1体の生成時に確定し、その個体が生存する間は変化しない倍率。</summary>
-public readonly struct EnemyStatScale
-{
-    public static EnemyStatScale Default =>
-        new(1f, 1f, EnemyStatRoundingMode.Round);
-
-    public float HealthMultiplier { get; }
-    public float DamageMultiplier { get; }
-    public EnemyStatRoundingMode RoundingMode { get; }
-
-    public EnemyStatScale(
-        float healthMultiplier,
-        float damageMultiplier,
-        EnemyStatRoundingMode roundingMode)
-    {
-        HealthMultiplier = Mathf.Max(0f, healthMultiplier);
-        DamageMultiplier = Mathf.Max(0f, damageMultiplier);
-        RoundingMode = roundingMode;
-    }
-
-    public int ScaleHealth(int baseValue) => Scale(baseValue, HealthMultiplier, 1);
-    public int ScaleDamage(int baseValue) => Scale(baseValue, DamageMultiplier, 0);
-
-    private int Scale(int baseValue, float multiplier, int minimum)
-    {
-        float value = Mathf.Max(0, baseValue) * multiplier;
-        if (!float.IsFinite(value) || value >= int.MaxValue)
-        {
-            return int.MaxValue;
-        }
-
-        int rounded = RoundingMode switch
-        {
-            EnemyStatRoundingMode.Floor => Mathf.FloorToInt(value),
-            EnemyStatRoundingMode.Ceil => Mathf.CeilToInt(value),
-            _ => Mathf.RoundToInt(value)
-        };
-        return Mathf.Max(minimum, rounded);
-    }
-}
-
 /// <summary>
 /// 1ウェーブのデータ
 /// </summary>
 [Serializable]
 public sealed class WaveData
 {
-    [SerializeField]
-    private List<WaveEnemyData> enemies = new();
+    public IReadOnlyList<WaveEnemyData> Enemies => _enemies;
 
-    public IReadOnlyList<WaveEnemyData> Enemies => enemies;
+    [SerializeField]
+    private List<WaveEnemyData> _enemies = new();
 }
 
 /// <summary>
@@ -185,56 +73,30 @@ public sealed class WaveData
 )]
 public sealed class WaveSequenceData : ScriptableObject
 {
-    [SerializeField]
-    private EnemyCatalog enemyCatalog;
+    public float WaveDuration => _waveDuration;
+    public float IntervalBetweenWaves => _intervalBetweenWaves;
+    public EnemyCatalog EnemyCatalog => _enemyCatalog;
+    public WaveSpawnTiming SpawnTiming => _spawnTiming;
+    public IReadOnlyList<WaveData> Waves => _waves;
+    public IReadOnlyList<EndlessEnemyGrowth> EndlessGrowth => _endlessGrowth;
+    public EndlessEnemyStatGrowth EndlessStatGrowth => _endlessStatGrowth;
 
-    [Header("全Wave共通設定")]
-    [Min(0.1f)]
-    [SerializeField]
-    private float waveDuration = 30f;
-
-    [Min(0f)]
-    [SerializeField]
-    private float intervalBetweenWaves = 5f;
-
-    [SerializeField]
-    private WaveSpawnTiming spawnTiming = WaveSpawnTiming.Random;
-
-    [Header("Waveごとの敵構成")]
-    [SerializeField]
-    private List<WaveData> waves = new();
-
-    [Header("設定Wave終了後の増加設定")]
-    [Tooltip("通常Waveには適用しません。最後のWaveの出現数を基準に、指定周期ごとに加算します。")]
-    [SerializeField]
-    private List<EndlessEnemyGrowth> endlessGrowth = new();
-
-    [Header("設定Wave終了後の敵ステータス成長")]
-    [SerializeField]
-    private EndlessEnemyStatGrowth endlessStatGrowth = new();
-
-    public float WaveDuration => waveDuration;
-    public float IntervalBetweenWaves => intervalBetweenWaves;
-    public EnemyCatalog EnemyCatalog => enemyCatalog;
-    public WaveSpawnTiming SpawnTiming => spawnTiming;
-    public IReadOnlyList<WaveData> Waves => waves;
-    public IReadOnlyList<EndlessEnemyGrowth> EndlessGrowth => endlessGrowth;
-    public EndlessEnemyStatGrowth EndlessStatGrowth => endlessStatGrowth;
-
+    /// <summary>設定した敵構成を先頭から順番に繰り返す。</summary>
     /// <param name="waveNumber">1始まりの通算Wave番号。</param>
     public WaveData GetWave(int waveNumber)
     {
-        if (waves == null || waves.Count == 0)
+        if (_waves == null || _waves.Count == 0)
         {
             return null;
         }
 
-        return waves[Mathf.Clamp(waveNumber - 1, 0, waves.Count - 1)];
+        int waveIndex = (Mathf.Max(1, waveNumber) - 1) % _waves.Count;
+        return _waves[waveIndex];
     }
 
     /// <summary>
-    /// 通常WaveはそのWaveの指定数だけを使用する。
-    /// 設定終了後は最終Waveの基礎数に、別設定の増加分を足す。
+    /// 1周目は各Waveの指定数を使う。
+    /// 2周目以降は、そのWaveの基礎数に1周目終了からの累積増加分を足す。
     /// </summary>
     public void GetEnemyCounts(int waveNumber, Dictionary<string, int> counts)
     {
@@ -253,13 +115,13 @@ public sealed class WaveSequenceData : ScriptableObject
             }
         }
 
-        int wavesAfterFinal = waveNumber - waves.Count;
+        int wavesAfterFinal = waveNumber - _waves.Count;
         if (wavesAfterFinal <= 0)
         {
             return;
         }
 
-        foreach (EndlessEnemyGrowth growth in endlessGrowth)
+        foreach (EndlessEnemyGrowth growth in _endlessGrowth)
         {
             if (growth != null)
             {
@@ -271,14 +133,43 @@ public sealed class WaveSequenceData : ScriptableObject
     /// <summary>指定Waveで新規生成する敵へ適用する倍率を返す。</summary>
     public EnemyStatScale GetEnemyStatScale(int waveNumber)
     {
-        if (waves == null || waves.Count == 0 || endlessStatGrowth == null)
+        if (_waves == null || _waves.Count == 0 || _endlessStatGrowth == null)
         {
             return EnemyStatScale.Default;
         }
 
-        int wavesAfterFinal = waveNumber - waves.Count;
-        return endlessStatGrowth.GetScale(wavesAfterFinal);
+        int wavesAfterFinal = waveNumber - _waves.Count;
+        return _endlessStatGrowth.GetScale(wavesAfterFinal);
     }
+
+    [SerializeField]
+    private EnemyCatalog _enemyCatalog;
+
+    [Header("全Wave共通設定")]
+    [Min(0.1f)]
+    [SerializeField]
+    private float _waveDuration = 30f;
+
+    [Min(0f)]
+    [SerializeField]
+    private float _intervalBetweenWaves = 5f;
+
+    [SerializeField]
+    private WaveSpawnTiming _spawnTiming = WaveSpawnTiming.Random;
+
+    [Header("Waveごとの敵構成")]
+    [Tooltip("最後のWaveが終わると先頭の構成に戻ります。")]
+    [SerializeField]
+    private List<WaveData> _waves = new();
+
+    [Header("2周目以降の出現数増加")]
+    [Tooltip("周回中の各Waveの出現数に、指定周期ごとの増加分を累積して加えます。")]
+    [SerializeField]
+    private List<EndlessEnemyGrowth> _endlessGrowth = new();
+
+    [Header("2周目以降の敵ステータス成長")]
+    [SerializeField]
+    private EndlessEnemyStatGrowth _endlessStatGrowth = new();
 
     private static void AddCount(Dictionary<string, int> counts, string id, int count)
     {

@@ -6,137 +6,57 @@ using UnityEngine;
 /// </summary>
 public sealed class PlayerView : MonoBehaviour
 {
-    [SerializeField]
-    private Transform visualRoot;
-
-    [SerializeField]
-    private Animator animator;
-
-    [Header("被ダメージ演出")]
-    [SerializeField]
-    private SpriteRenderer damageRenderer;
-
-    [SerializeField, Min(0.01f)]
-    private float damageFlashDuration = 0.15f;
-
-    private Color originalColor;
-    private Coroutine damageFlash;
-    private bool nataEquipped;
-    private Sword attackingNata;
-    private Coroutine nataAttackRoutine;
-    private AnimatorOverrideController nataController;
-    private RuntimeAnimatorController originalController;
-    private static readonly int NataEquipped = Animator.StringToHash("NataEquipped");
-    private static readonly int NataAttack = Animator.StringToHash("Base Layer.NataAttack");
-    private static readonly int NataAttackSpeed = Animator.StringToHash("NataAttackSpeed");
-
-    public void SetNataEquipped(bool equipped)
+    /// <summary>
+    /// ナタを持った姿に変える
+    /// </summary>
+    internal void EquipNata()
     {
-        if (animator == null) return;
-        nataEquipped = equipped;
-        animator.SetBool(NataEquipped, equipped);
-        if (!equipped && attackingNata != null) FinishNataAttack();
+        if (_nataEquipped) return;
+        _nataEquipped = true;
+        if (_animator != null && _animator.isActiveAndEnabled)
+            _animator.SetBool(_nataEquippedHash, true);
     }
 
-    public bool TryPlayNataAttack(Sword weapon, AnimationClip clip, float speed)
+    public bool TryPlayNataAttack(Sword weapon, float speed)
     {
-        if (!isActiveAndEnabled || !nataEquipped || attackingNata != null ||
-            animator == null || !animator.isActiveAndEnabled || clip == null ||
-            !animator.HasState(0, NataAttack)) return false;
+        if (!isActiveAndEnabled || !_nataEquipped || _attackingNata != null ||
+            _animator == null || !_animator.isActiveAndEnabled || !_animator.HasState(0, _nataAttackHash))
+            return false;
 
-        if (nataController == null)
-        {
-            originalController = animator.runtimeAnimatorController;
-            nataController = new AnimatorOverrideController(originalController);
-            animator.runtimeAnimatorController = nataController;
-        }
-        nataController["NataAttackPlaceholder"] = clip;
-        animator.SetBool(NataEquipped, nataEquipped);
-        attackingNata = weapon;
-        speed = Mathf.Max(0.01f, speed);
-        animator.SetFloat(NataAttackSpeed, speed);
-        animator.Play(NataAttack, 0, 0f);
-        nataAttackRoutine = StartCoroutine(WaitForNataAttack());
+        _attackingNata = weapon;
+        _animator.SetFloat(_nataAttackSpeedHash, Mathf.Max(0.01f, speed));
+        _animator.Play(_nataAttackHash, 0, 0f);
+        _nataAttackRoutine = StartCoroutine(WaitForNataAttack());
         return true;
-    }
-
-    private IEnumerator WaitForNataAttack()
-    {
-        // Animatorの評価後に終了を確認し、最後のフレームの命中イベントも処理する。
-        yield return null;
-        while (animator != null && animator.isActiveAndEnabled)
-        {
-            AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
-            if (state.fullPathHash != NataAttack || state.normalizedTime >= 1f) break;
-            yield return null;
-        }
-        nataAttackRoutine = null;
-        FinishNataAttack();
     }
 
     // PlayerのAnimatorと同じGameObjectへ送られるAnimation Event。
     public void DealNataDamage()
     {
-        if (attackingNata != null && attackingNata.isActiveAndEnabled)
-            attackingNata.DealAttackDamage();
+        if (_attackingNata != null && _attackingNata.isActiveAndEnabled)
+            _attackingNata.DealAttackDamage();
     }
 
-    public void FinishNataAttack()
+    private void FinishNataAttack()
     {
-        if (object.ReferenceEquals(attackingNata, null) && nataAttackRoutine == null) return;
-        if (nataAttackRoutine != null) StopCoroutine(nataAttackRoutine);
-        nataAttackRoutine = null;
-        Sword weapon = attackingNata;
-        attackingNata = null;
+        if (object.ReferenceEquals(_attackingNata, null) && _nataAttackRoutine == null) return;
+        if (_nataAttackRoutine != null) StopCoroutine(_nataAttackRoutine);
+        _nataAttackRoutine = null;
+        Sword weapon = _attackingNata;
+        _attackingNata = null;
         if (weapon != null) weapon.FinishAttack();
-        if (animator != null && animator.isActiveAndEnabled)
+        if (_animator != null && _animator.isActiveAndEnabled)
         {
-            bool moving = animator.GetBool("Move");
-            bool backwards = animator.GetFloat("Direction") > 0f;
-            string state = nataEquipped
-                ? (moving ? (backwards ? "NataPlayerMoveBack" : "NataPlayerMove") : "NataIdol")
-                : (moving ? (backwards ? "PlayerMoveBack" : "PlayerMove") : "Idol");
-            animator.Play("Base Layer." + state, 0, 0f);
+            bool moving = _animator.GetBool("Move");
+            bool backwards = _animator.GetFloat("Direction") > 0f;
+            string state = moving ? (backwards ? "NataPlayerMoveBack" : "NataPlayerMove") : "NataIdol";
+            _animator.Play("Base Layer." + state, 0, 0f);
         }
     }
 
     public void CancelNataAttack(Sword weapon)
     {
-        if (attackingNata == weapon) FinishNataAttack();
-    }
-
-    private void OnDestroy()
-    {
-        if (nataController == null) return;
-        if (animator != null) animator.runtimeAnimatorController = originalController;
-        Destroy(nataController);
-    }
-
-    private void Awake()
-    {
-        if (damageRenderer == null)
-        {
-            Transform root = visualRoot != null ? visualRoot : transform;
-            damageRenderer = root.GetComponentInChildren<SpriteRenderer>(true);
-        }
-
-        if (damageRenderer != null)
-        {
-            originalColor = damageRenderer.color;
-        }
-    }
-
-    private void OnDisable()
-    {
-        if (attackingNata != null) FinishNataAttack();
-        if (damageFlash == null)
-        {
-            return;
-        }
-
-        StopCoroutine(damageFlash);
-        damageFlash = null;
-        RestoreColor();
+        if (_attackingNata == weapon) FinishNataAttack();
     }
 
     /// <summary>
@@ -144,42 +64,17 @@ public sealed class PlayerView : MonoBehaviour
     /// </summary>
     public void PlayDamageFlash()
     {
-        if (!isActiveAndEnabled || damageRenderer == null)
+        if (!isActiveAndEnabled || _damageRenderer == null)
         {
             return;
         }
 
-        if (damageFlash != null)
+        if (_damageFlash != null)
         {
-            StopCoroutine(damageFlash);
+            StopCoroutine(_damageFlash);
         }
 
-        damageFlash = StartCoroutine(FlashDamage());
-    }
-
-    /// <summary>
-    /// ダメージを食らった表現をする関数
-    /// </summary>
-    /// <returns></returns>
-    private IEnumerator FlashDamage()
-    {
-        damageRenderer.color = new Color(1f, 0f, 0f, originalColor.a);
-
-        yield return new WaitForSeconds(damageFlashDuration);
-
-        RestoreColor();
-        damageFlash = null;
-    }
-
-    /// <summary>
-    /// 初期の色に戻す
-    /// </summary>
-    private void RestoreColor()
-    {
-        if (damageRenderer != null)
-        {
-            damageRenderer.color = originalColor;
-        }
+        _damageFlash = StartCoroutine(FlashDamage());
     }
 
     /// <summary>
@@ -192,14 +87,14 @@ public sealed class PlayerView : MonoBehaviour
             return;
         }
 
-        Vector3 scale = visualRoot.localScale;
+        Vector3 scale = _visualRoot.localScale;
         float absoluteScaleX = Mathf.Abs(scale.x);
 
         scale.x = direction < 0f
             ? -absoluteScaleX
             : absoluteScaleX;
 
-        visualRoot.localScale = scale;
+        _visualRoot.localScale = scale;
     }
 
     /// <summary>
@@ -210,11 +105,105 @@ public sealed class PlayerView : MonoBehaviour
     {
         bool isMoving = Mathf.Abs(moveX) > 0.01f;
 
-        float facingDirection = Mathf.Sign(visualRoot.localScale.x);
+        float facingDirection = Mathf.Sign(_visualRoot.localScale.x);
         // プレイヤーの向きに対して、移動方向がどちらかを計算する
         float relativeDirection = moveX * facingDirection;
 
-        animator.SetBool("Move", isMoving);
-        animator.SetFloat("Direction", relativeDirection);
+        _animator.SetBool("Move", isMoving);
+        _animator.SetFloat("Direction", relativeDirection);
+    }
+
+    [SerializeField]
+    private Transform _visualRoot;
+
+    [SerializeField]
+    private Animator _animator;
+
+    [Header("被ダメージ演出")]
+    [SerializeField]
+    private SpriteRenderer _damageRenderer;
+
+    [SerializeField, Min(0.01f)]
+    private float _damageFlashDuration = 0.15f;
+
+    private Color _originalColor;
+    private Coroutine _damageFlash;
+    private bool _nataEquipped;
+    private Sword _attackingNata;
+    private Coroutine _nataAttackRoutine;
+    private static readonly int _nataEquippedHash = Animator.StringToHash("NataEquipped");
+    private static readonly int _nataAttackHash = Animator.StringToHash("Base Layer.NataAttack");
+    private static readonly int _nataAttackSpeedHash = Animator.StringToHash("NataAttackSpeed");
+
+    private IEnumerator WaitForNataAttack()
+    {
+        // Animatorの評価後に終了を確認し、最後のフレームの命中イベントも処理する。
+        yield return null;
+        while (_animator != null && _animator.isActiveAndEnabled)
+        {
+            AnimatorStateInfo state = _animator.GetCurrentAnimatorStateInfo(0);
+            if (state.fullPathHash != _nataAttackHash || state.normalizedTime >= 1f) break;
+            yield return null;
+        }
+        _nataAttackRoutine = null;
+        FinishNataAttack();
+    }
+
+    private void Awake()
+    {
+        if (_damageRenderer == null)
+        {
+            Transform root = _visualRoot != null ? _visualRoot : transform;
+            _damageRenderer = root.GetComponentInChildren<SpriteRenderer>(true);
+        }
+
+        if (_damageRenderer != null)
+        {
+            _originalColor = _damageRenderer.color;
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (_nataEquipped && _animator != null)
+            _animator.SetBool(_nataEquippedHash, true);
+    }
+
+    private void OnDisable()
+    {
+        if (_attackingNata != null) FinishNataAttack();
+        if (_damageFlash == null)
+        {
+            return;
+        }
+
+        StopCoroutine(_damageFlash);
+        _damageFlash = null;
+        RestoreColor();
+    }
+
+    /// <summary>
+    /// ダメージを食らった表現をする関数
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator FlashDamage()
+    {
+        _damageRenderer.color = new Color(1f, 0f, 0f, _originalColor.a);
+
+        yield return new WaitForSeconds(_damageFlashDuration);
+
+        RestoreColor();
+        _damageFlash = null;
+    }
+
+    /// <summary>
+    /// 初期の色に戻す
+    /// </summary>
+    private void RestoreColor()
+    {
+        if (_damageRenderer != null)
+        {
+            _damageRenderer.color = _originalColor;
+        }
     }
 }

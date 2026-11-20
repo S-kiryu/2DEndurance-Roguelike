@@ -46,8 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bf36b01e8add254db674b78dc158e7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sword
-  data: {fileID: 11400000, guid: bef4502aeff3689408ec9dca1d2b40e6, type: 2}
-  visualRoot: {fileID: 4365145280671323041}
+  _data: {fileID: 11400000, guid: bef4502aeff3689408ec9dca1d2b40e6, type: 2}
+  _visualRoot: {fileID: 4365145280671323041}
   animator: {fileID: 7837097065556063414}
 --- !u!95 &7837097065556063414
 Animator:

@@ -10,41 +10,6 @@ public sealed class PlayerPresenter : MonoBehaviour, IDamageable
 
     public PlayerModel Model => _model;
 
-    [SerializeField]
-    private PlayerView _view;
-
-    [SerializeField]
-    private PlayerMovement _movement;
-    [SerializeField]
-    private PlayerModel _model = new PlayerModel();
-
-    private float _invincibilityEndsAt;
-
-    private void Awake()
-    {
-        _model.Died += OnPlayerDied;
-        _model.Initialize();
-        _movement.Initialize(_model);
-    }
-
-    private void Update()
-    {
-        if (_model.IsInvincible && Time.time >= _invincibilityEndsAt)
-        {
-            _model.SetInvincible(false);
-        }
-    }
-
-    private void OnDisable()
-    {
-        _model.SetInvincible(false);
-    }
-
-    private void OnDestroy()
-    {
-        _model.Died -= OnPlayerDied;
-    }
-
     /// <summary>
     /// 敵からのダメージを受け取り伝達する
     /// </summary>
@@ -127,6 +92,41 @@ public sealed class PlayerPresenter : MonoBehaviour, IDamageable
             $"攻撃 {_model.AttackMultiplier:F2}倍, 攻撃速度 {_model.AttackSpeedMultiplier:F2}倍, " +
             $"クリティカル率加算 {_model.CriticalRateBonus:P0}", this);
         return true;
+    }
+
+    [SerializeField]
+    private PlayerView _view;
+
+    [SerializeField]
+    private PlayerMovement _movement;
+    [SerializeField]
+    private PlayerModel _model = new PlayerModel();
+
+    private float _invincibilityEndsAt;
+
+    private void Awake()
+    {
+        _model.Died += OnPlayerDied;
+        _model.Initialize();
+        _movement.Initialize(_model);
+    }
+
+    private void Update()
+    {
+        if (_model.IsInvincible && Time.time >= _invincibilityEndsAt)
+        {
+            _model.SetInvincible(false);
+        }
+    }
+
+    private void OnDisable()
+    {
+        _model.SetInvincible(false);
+    }
+
+    private void OnDestroy()
+    {
+        _model.Died -= OnPlayerDied;
     }
 
     /// <summary>

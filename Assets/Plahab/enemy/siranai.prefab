@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 6013554073011122686}
   - component: {fileID: 3400585260234693818}
   - component: {fileID: 22286937564532140}
-  - component: {fileID: 2435444649973787278}
   - component: {fileID: 1623824000643306243}
   - component: {fileID: 150641313245426159}
   - component: {fileID: 4431222419943276791}
@@ -188,8 +187,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38df18aaaefc4be42af878665ddb8d37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMove
-  moveSpeed: 1
-  spriteFacesLeft: 1
+  _moveSpeed: 1
+  _spriteFacesLeft: 1
 --- !u!114 &22286937564532140
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -202,19 +201,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43083f0b5e133f143aaf29d97aafe143, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TestEnemy
-  statusData: {fileID: 11400000, guid: 9e6b3560b8513a0489ace762f43f4627, type: 2}
---- !u!114 &2435444649973787278
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7743896693862657505}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22e47d33f4f1e84224a606004df45dee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PooledObject
+  _statusData: {fileID: 11400000, guid: 9e6b3560b8513a0489ace762f43f4627, type: 2}
 --- !u!114 &1623824000643306243
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -239,9 +226,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 649a3e11c09543c78cdb54ca3e30e2dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyView
-  damageRenderer: {fileID: 5008655111169208875}
-  damageFlashOverlay: {fileID: 5618024265850076543}
-  damageFlashDuration: 0.15
+  _damageRenderer: {fileID: 5008655111169208875}
+  _damageFlashOverlay: {fileID: 5618024265850076543}
+  _damageFlashDuration: 0.15
 --- !u!95 &4431222419943276791
 Animator:
   serializedVersion: 7

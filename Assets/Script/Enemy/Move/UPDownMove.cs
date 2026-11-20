@@ -37,7 +37,6 @@ public class UpDownMove : MonoBehaviour
 
         if (_shadow != null)
         {
-            // 親の上下動だけを打ち消し、影は横移動に追従させる。
             _shadow.position = transform.TransformPoint(_shadowLocalPosition) - Vector3.up * offset;
         }
     }

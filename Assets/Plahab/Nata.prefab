@@ -44,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bf36b01e8add254db674b78dc158e7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sword
-  data: {fileID: 11400000, guid: 62fc96eb0f334c2c8c16ab3a17d2fe09, type: 2}
-  visualRoot: {fileID: 3002}
+  _data: {fileID: 11400000, guid: 62fc96eb0f334c2c8c16ab3a17d2fe09, type: 2}
+  _visualRoot: {fileID: 3002}
   animator: {fileID: 0}
+  _showAttackRange: 1

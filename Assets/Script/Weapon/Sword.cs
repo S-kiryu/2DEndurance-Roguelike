@@ -6,111 +6,17 @@ using UnityEngine;
 /// </summary>
 public class Sword : Weapon
 {
-    [Header("攻撃モーション")]
-    [SerializeField]
-    private Transform visualRoot;
-
-    [SerializeField]
-    private Animator animator;
-
-    private static readonly int AttackTrigger = Animator.StringToHash("Attack");
-    private readonly HashSet<IDamageable> hitTargets = new();
-    private SpriteRenderer[] visualRenderers;
-    private SwordData swordData;
-    private Quaternion idleRotation;
-    private bool isAttacking;
-    private PlayerView ownerView;
-    private bool dealtPlayerAttackDamage;
-
-    private void Awake()
-    {
-        if (visualRoot == null)
-        {
-            visualRoot = transform;
-        }
-
-        if (animator == null)
-        {
-            animator = GetComponent<Animator>();
-        }
-
-        idleRotation = visualRoot.localRotation;
-        visualRenderers = visualRoot.GetComponentsInChildren<SpriteRenderer>(true);
-        SetVisualVisible(false);
-    }
-
-    protected override void OnDisable()
-    {
-        base.OnDisable();
-        if (ownerView != null) ownerView.CancelNataAttack(this);
-        isAttacking = false;
-
-        if (animator != null)
-        {
-            animator.ResetTrigger(AttackTrigger);
-        }
-
-        if (visualRoot != null)
-        {
-            visualRoot.localRotation = idleRotation;
-        }
-
-        SetVisualVisible(false);
-    }
-
-    protected override bool IsCompatibleData(WeaponData weaponData)
-    {
-        return weaponData is SwordData;
-    }
-
-    protected override void OnInitialized()
-    {
-        swordData = (SwordData)Data;
-        ownerView = GetComponentInParent<PlayerView>();
-    }
-
-    /// <summary>
-    /// 攻撃処理
-    /// </summary>
-    /// <returns></returns>
-    protected override bool TryAttack()
-    {
-        if (isAttacking || !HasTargetInRange())
-        {
-            return false;
-        }
-
-        if (swordData.UsePlayerAnimation)
-        {
-            float speed = (OwnerStats?.AttackSpeedMultiplier ?? 1f) * WeaponAttackSpeedMultiplier;
-            if (ownerView == null || !ownerView.TryPlayNataAttack(this, swordData.PlayerAttackClip, speed))
-                return false;
-            isAttacking = true;
-            dealtPlayerAttackDamage = false;
-            NotifyAttackStarted();
-            return true;
-        }
-
-        if (animator == null) return false;
-        isAttacking = true;
-        NotifyAttackStarted();
-        SetVisualVisible(true);
-        animator.ResetTrigger(AttackTrigger);
-        animator.SetTrigger(AttackTrigger);
-        return true;
-    }
-
     /// <summary>
     /// 剣が敵に当たるフレームから Animation Event で呼ぶ。
     /// </summary>
     public void DealAttackDamage()
     {
-        if (isAttacking)
+        if (_isAttacking)
         {
-            if (swordData.UsePlayerAnimation)
+            if (_swordData.UsePlayerAnimation)
             {
-                if (dealtPlayerAttackDamage) return;
-                dealtPlayerAttackDamage = true;
+                if (_dealtPlayerAttackDamage) return;
+                _dealtPlayerAttackDamage = true;
             }
             int hitCount = 1 + AdditionalHits;
 
@@ -126,22 +32,119 @@ public class Sword : Weapon
     /// </summary>
     public void FinishAttack()
     {
-        bool finished = isAttacking;
-        if (visualRoot != null)
+        bool finished = _isAttacking;
+        if (_visualRoot != null)
         {
-            visualRoot.localRotation = idleRotation;
+            _visualRoot.localRotation = _idleRotation;
         }
 
         SetVisualVisible(false);
-        isAttacking = false;
+        _isAttacking = false;
         if (finished) NotifyAttackFinished();
+    }
+
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        if (_ownerView != null) _ownerView.CancelNataAttack(this);
+        _isAttacking = false;
+
+        if (_animator != null)
+        {
+            _animator.ResetTrigger(_attackTriggerHash);
+        }
+
+        if (_visualRoot != null)
+        {
+            _visualRoot.localRotation = _idleRotation;
+        }
+
+        SetVisualVisible(false);
+    }
+
+    protected override bool IsCompatibleData(WeaponData weaponData)
+    {
+        return weaponData is SwordData;
+    }
+
+    protected override void OnInitialized()
+    {
+        _swordData = (SwordData)Data;
+        _ownerView = GetComponentInParent<PlayerView>();
+    }
+
+    /// <summary>
+    /// 攻撃処理
+    /// </summary>
+    /// <returns></returns>
+    protected override bool TryAttack()
+    {
+        if (_isAttacking || !HasTargetInRange())
+        {
+            return false;
+        }
+
+        if (_swordData.UsePlayerAnimation)
+        {
+            if (_ownerView == null || !_ownerView.TryPlayNataAttack(this, EffectiveAttackSpeedMultiplier))
+                return false;
+            _isAttacking = true;
+            _dealtPlayerAttackDamage = false;
+            NotifyAttackStarted();
+            return true;
+        }
+
+        if (_animator == null) return false;
+        _isAttacking = true;
+        NotifyAttackStarted();
+        SetVisualVisible(true);
+        _animator.ResetTrigger(_attackTriggerHash);
+        _animator.SetTrigger(_attackTriggerHash);
+        return true;
+    }
+
+    [Header("攻撃モーション")]
+    [SerializeField]
+    private Transform _visualRoot;
+
+    private Animator _animator;
+
+    [Header("デバッグ")]
+    [SerializeField]
+    private bool _showAttackRange;
+
+    private static readonly int _attackTriggerHash = Animator.StringToHash("Attack");
+    private readonly HashSet<IDamageable> _hitTargets = new();
+    private readonly List<Collider2D> _targetsInRange = new();
+    private SpriteRenderer[] _visualRenderers;
+    private SwordData _swordData;
+    private Quaternion _idleRotation;
+    private bool _isAttacking;
+    private PlayerView _ownerView;
+    private bool _dealtPlayerAttackDamage;
+
+    private void Awake()
+    {
+        if (_visualRoot == null)
+        {
+            _visualRoot = transform;
+        }
+
+        if (_animator == null)
+        {
+            _animator = GetComponent<Animator>();
+        }
+
+        _idleRotation = _visualRoot.localRotation;
+        _visualRenderers = _visualRoot.GetComponentsInChildren<SpriteRenderer>(true);
+        SetVisualVisible(false);
     }
 
     private bool HasTargetInRange()
     {
-        Collider2D[] colliders = FindTargetsInRange();
+        FindTargetsInRange();
 
-        foreach (Collider2D targetCollider in colliders)
+        foreach (Collider2D targetCollider in _targetsInRange)
         {
             if (IsValidTarget(targetCollider))
             {
@@ -154,10 +157,10 @@ public class Sword : Weapon
 
     private void DealDamage()
     {
-        Collider2D[] colliders = FindTargetsInRange();
-        hitTargets.Clear();
+        FindTargetsInRange();
+        _hitTargets.Clear();
 
-        foreach (Collider2D targetCollider in colliders)
+        foreach (Collider2D targetCollider in _targetsInRange)
         {
             if (!IsValidTarget(targetCollider))
             {
@@ -166,24 +169,33 @@ public class Sword : Weapon
 
             IDamageable target = targetCollider.GetComponentInParent<IDamageable>();
 
-            if (target != null && hitTargets.Add(target))
+            if (target != null && _hitTargets.Add(target))
             {
                 Context.DealDamage(targetCollider, CalculateDamage());
             }
         }
     }
 
-    private Collider2D[] FindTargetsInRange()
+    private void FindTargetsInRange()
     {
-        int layerMask = swordData.TargetLayers.value == 0
+        int layerMask = _swordData.TargetLayers.value == 0
             ? Physics2D.AllLayers
-            : swordData.TargetLayers.value;
+            : _swordData.TargetLayers.value;
 
-        return Physics2D.OverlapCircleAll(
-            transform.position,
-            swordData.AttackRange * WeaponRangeMultiplier,
-            layerMask
-        );
+        var filter = new ContactFilter2D { useTriggers = Physics2D.queriesHitTriggers };
+        filter.SetLayerMask(layerMask);
+        Physics2D.OverlapCircle(transform.position, GetAttackRadius(_swordData), filter, _targetsInRange);
+    }
+
+    private float GetAttackRadius(SwordData attackData)
+    {
+        return attackData.AttackRange * WeaponRangeMultiplier;
+    }
+
+    private Vector2 GetAttackDirection()
+    {
+        Transform facingRoot = transform.parent != null ? transform.parent : transform;
+        return facingRoot.lossyScale.x < 0f ? Vector2.left : Vector2.right;
     }
 
     private bool IsValidTarget(Collider2D targetCollider)
@@ -193,17 +205,10 @@ public class Sword : Weapon
             return false;
         }
 
-        Transform facingRoot = transform.parent != null
-            ? transform.parent
-            : transform;
-        Vector2 attackDirection = facingRoot.lossyScale.x < 0f
-            ? Vector2.left
-            : Vector2.right;
-
         Vector2 targetDirection = targetCollider.bounds.center - transform.position;
 
         if (targetDirection.sqrMagnitude > 0f &&
-            Vector2.Angle(attackDirection, targetDirection) > swordData.AttackAngle * 0.5f)
+            Vector2.Angle(GetAttackDirection(), targetDirection) > _swordData.AttackAngle * 0.5f)
         {
             return false;
         }
@@ -211,14 +216,49 @@ public class Sword : Weapon
         return targetCollider.GetComponentInParent<IDamageable>() != null;
     }
 
-    private void SetVisualVisible(bool isVisible)
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
     {
-        if (visualRenderers == null)
+        if (!_showAttackRange || !isActiveAndEnabled || Data is not SwordData attackData)
         {
             return;
         }
 
-        foreach (SpriteRenderer visualRenderer in visualRenderers)
+        Vector3 center = transform.position;
+        Vector3 reach = GetAttackDirection() * GetAttackRadius(attackData);
+        float angle = attackData.AttackAngle;
+        float halfAngle = angle * 0.5f;
+        int segments = Mathf.Max(1, Mathf.CeilToInt(angle / 5f));
+        Vector3 firstPoint = center + Quaternion.Euler(0f, 0f, -halfAngle) * reach;
+        Vector3 previousPoint = firstPoint;
+
+        Color previousColor = Gizmos.color;
+        Gizmos.color = Color.cyan;
+        for (int i = 1; i <= segments; i++)
+        {
+            float degrees = Mathf.Lerp(-halfAngle, halfAngle, (float)i / segments);
+            Vector3 nextPoint = center + Quaternion.Euler(0f, 0f, degrees) * reach;
+            Gizmos.DrawLine(previousPoint, nextPoint);
+            previousPoint = nextPoint;
+        }
+
+        if (angle < 360f)
+        {
+            Gizmos.DrawLine(center, firstPoint);
+            Gizmos.DrawLine(center, previousPoint);
+        }
+        Gizmos.color = previousColor;
+    }
+#endif
+
+    private void SetVisualVisible(bool isVisible)
+    {
+        if (_visualRenderers == null)
+        {
+            return;
+        }
+
+        foreach (SpriteRenderer visualRenderer in _visualRenderers)
         {
             visualRenderer.enabled = isVisible;
         }

@@ -6,54 +6,18 @@ using UnityEngine.UI;
 /// <summary>戦闘HUDとゲームオーバー結果を表示する。</summary>
 public sealed class GameSessionUI : MonoBehaviour
 {
-    [Header("戦闘HUD")]
-    [SerializeField] private TMP_Text healthText;
-    [SerializeField] private TMP_Text survivalTimeText;
-    [SerializeField] private TMP_Text waveText;
-    [SerializeField] private TMP_Text waveRemainingText;
-    [SerializeField] private TMP_Text experienceText;
-
-    [Header("ゲームオーバー")]
-    [SerializeField] private GameObject gameOverPanel;
-    [SerializeField] private TMP_Text resultTimeText;
-    [SerializeField] private TMP_Text resultWaveText;
-    [SerializeField] private Button retryButton;
-    [SerializeField] private Button titleButton;
-
-    private GameSessionManager session;
-
-    private void Awake()
-    {
-        if (gameOverPanel != null)
-        {
-            gameOverPanel.SetActive(false);
-        }
-    }
-
     public void Initialize(GameSessionManager manager)
     {
-        session = manager;
-        if (retryButton != null)
+        _session = manager;
+        if (_retryButton != null)
         {
-            retryButton.onClick.RemoveListener(Restart);
-            retryButton.onClick.AddListener(Restart);
+            _retryButton.onClick.RemoveListener(Restart);
+            _retryButton.onClick.AddListener(Restart);
         }
-        if (titleButton != null)
+        if (_titleButton != null)
         {
-            titleButton.onClick.RemoveListener(ReturnToTitle);
-            titleButton.onClick.AddListener(ReturnToTitle);
-        }
-    }
-
-    private void OnDestroy()
-    {
-        if (retryButton != null)
-        {
-            retryButton.onClick.RemoveListener(Restart);
-        }
-        if (titleButton != null)
-        {
-            titleButton.onClick.RemoveListener(ReturnToTitle);
+            _titleButton.onClick.RemoveListener(ReturnToTitle);
+            _titleButton.onClick.AddListener(ReturnToTitle);
         }
     }
 
@@ -70,25 +34,32 @@ public sealed class GameSessionUI : MonoBehaviour
         int wave,
         float waveRemaining)
     {
-        if (healthText != null)
+        if (_healthText != null)
         {
-            healthText.text = $"HP {player.CurrentHealth} / {player.MaxHealth}";
+            _healthText.text = $"HP {player.CurrentHealth} / {player.MaxHealth}";
         }
-        if (experienceText != null)
+        if (_healthFill != null)
         {
-            experienceText.text = $"LV {player.Level}   XP {player.CurrentExperience} / {player.ExperienceToNextLevel}";
+            float healthRatio = player.MaxHealth > 0
+                ? Mathf.Clamp01((float)player.CurrentHealth / player.MaxHealth)
+                : 0f;
+            _healthFill.rectTransform.anchorMax = new Vector2(healthRatio, 1f);
         }
-        if (survivalTimeText != null)
+        if (_experienceText != null)
         {
-            survivalTimeText.text = $"TIME {FormatTime(survivalTime)}";
+            _experienceText.text = $"LV {player.Level}   XP {player.CurrentExperience} / {player.ExperienceToNextLevel}";
         }
-        if (waveText != null)
+        if (_survivalTimeText != null)
         {
-            waveText.text = $"WAVE {wave}";
+            _survivalTimeText.text = $"TIME {FormatTime(survivalTime)}";
         }
-        if (waveRemainingText != null)
+        if (_waveText != null)
         {
-            waveRemainingText.text = $"NEXT {Mathf.Max(0f, waveRemaining):0.0}s";
+            _waveText.text = $"WAVE {wave}";
+        }
+        if (_waveRemainingText != null)
+        {
+            _waveRemainingText.text = $"NEXT {Mathf.Max(0f, waveRemaining):0.0}s";
         }
     }
 
@@ -99,18 +70,55 @@ public sealed class GameSessionUI : MonoBehaviour
     /// <param name="reachedWave">到達ウェーブ数</param>
     public void ShowGameOver(float survivalTime, int reachedWave)
     {
-        if (resultTimeText != null)
+        if (_resultTimeText != null)
         {
-            resultTimeText.text = $"生存時間  {FormatTime(survivalTime)}";
+            _resultTimeText.text = $"生存時間  {FormatTime(survivalTime)}";
         }
-        if (resultWaveText != null)
+        if (_resultWaveText != null)
         {
-            resultWaveText.text = $"到達ウェーブ  {reachedWave}";
+            _resultWaveText.text = $"到達ウェーブ  {reachedWave}";
         }
-        if (gameOverPanel != null)
+        if (_gameOverPanel != null)
         {
-            gameOverPanel.SetActive(true);
-            gameOverPanel.transform.SetAsLastSibling();
+            _gameOverPanel.SetActive(true);
+            _gameOverPanel.transform.SetAsLastSibling();
+        }
+    }
+
+    [Header("戦闘HUD")]
+    [SerializeField] private TMP_Text _healthText;
+    [SerializeField] private Image _healthFill;
+    [SerializeField] private TMP_Text _survivalTimeText;
+    [SerializeField] private TMP_Text _waveText;
+    [SerializeField] private TMP_Text _waveRemainingText;
+    [SerializeField] private TMP_Text _experienceText;
+
+    [Header("ゲームオーバー")]
+    [SerializeField] private GameObject _gameOverPanel;
+    [SerializeField] private TMP_Text _resultTimeText;
+    [SerializeField] private TMP_Text _resultWaveText;
+    [SerializeField] private Button _retryButton;
+    [SerializeField] private Button _titleButton;
+
+    private GameSessionManager _session;
+
+    private void Awake()
+    {
+        if (_gameOverPanel != null)
+        {
+            _gameOverPanel.SetActive(false);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (_retryButton != null)
+        {
+            _retryButton.onClick.RemoveListener(Restart);
+        }
+        if (_titleButton != null)
+        {
+            _titleButton.onClick.RemoveListener(ReturnToTitle);
         }
     }
 
@@ -119,7 +127,7 @@ public sealed class GameSessionUI : MonoBehaviour
     /// </summary>
     private void ReturnToTitle()
     {
-        session?.ReturnToTitle();
+        _session?.ReturnToTitle();
     }
 
     /// <summary>
@@ -127,7 +135,7 @@ public sealed class GameSessionUI : MonoBehaviour
     /// </summary>
     private void Restart()
     {
-        session?.RestartRun();
+        _session?.RestartRun();
     }
 
     /// <summary>

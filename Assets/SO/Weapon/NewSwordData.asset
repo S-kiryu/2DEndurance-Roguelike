@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14773bc9eb7448289f7a158f030943b8, type: 3}
   m_Name: NewSwordData
   m_EditorClassIdentifier: Assembly-CSharp::SwordData
-  stats:
+  _stats:
     WeaponName: Test Sword
     Icon: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
     Description: 
@@ -21,52 +21,53 @@ MonoBehaviour:
     CriticalMultiplier: 2
     AttackInterval: 0.65
     MaxEnchantLevel: 5
-  weaponPrefab: {fileID: 3003, guid: 928ff4433d914c1c899248f02be8e81e, type: 3}
-  upgradeStages:
-  - starLevel: 2
-    displayName: "\u5263 \u26052"
-    description: "\u653B\u6483\u529B +25%"
-    damageMultiplierBonus: 0.25
-    attackSpeedMultiplierBonus: 0
-    criticalRateBonus: 0
-    rangeMultiplierBonus: 0
-    projectileSpeedMultiplierBonus: 0
-    penetrationBonus: 0
-    effects: []
-  - starLevel: 3
-    displayName: "\u5263 \u26053"
-    description: "\u653B\u6483\u901F\u5EA6 +20%"
-    damageMultiplierBonus: 0
-    attackSpeedMultiplierBonus: 0.2
-    criticalRateBonus: 0
-    rangeMultiplierBonus: 0
-    projectileSpeedMultiplierBonus: 0
-    penetrationBonus: 0
-    effects: []
-  - starLevel: 4
-    displayName: "\u5263 \u26054"
-    description: "\u653B\u6483\u7BC4\u56F2 +30%"
-    damageMultiplierBonus: 0
-    attackSpeedMultiplierBonus: 0
-    criticalRateBonus: 0
-    rangeMultiplierBonus: 0.3
-    projectileSpeedMultiplierBonus: 0
-    penetrationBonus: 0
-    effects: []
-  - starLevel: 5
-    displayName: "\u5263 \u26055"
-    description: "\u56FA\u6709\u52B9\u679C: \u547D\u4E2D\u6642\u306B\u8FFD\u52A0\u30671\u56DE\u30C0\u30E1\u30FC\u30B8"
-    damageMultiplierBonus: 0
-    attackSpeedMultiplierBonus: 0
-    criticalRateBonus: 0
-    rangeMultiplierBonus: 0
-    projectileSpeedMultiplierBonus: 0
-    penetrationBonus: 0
-    effects:
+  _weaponPrefab: {fileID: 3003, guid: 928ff4433d914c1c899248f02be8e81e, type: 3}
+  _orbitEnabled: 1
+  _upgradeStages:
+  - _starLevel: 2
+    _displayName: "\u5263 \u26052"
+    _description: "\u653B\u6483\u529B +25%"
+    _damageMultiplierBonus: 0.25
+    _attackSpeedMultiplierBonus: 0
+    _criticalRateBonus: 0
+    _rangeMultiplierBonus: 0
+    _projectileSpeedMultiplierBonus: 0
+    _penetrationBonus: 0
+    _effects: []
+  - _starLevel: 3
+    _displayName: "\u5263 \u26053"
+    _description: "\u653B\u6483\u901F\u5EA6 +20%"
+    _damageMultiplierBonus: 0
+    _attackSpeedMultiplierBonus: 0.2
+    _criticalRateBonus: 0
+    _rangeMultiplierBonus: 0
+    _projectileSpeedMultiplierBonus: 0
+    _penetrationBonus: 0
+    _effects: []
+  - _starLevel: 4
+    _displayName: "\u5263 \u26054"
+    _description: "\u653B\u6483\u7BC4\u56F2 +30%"
+    _damageMultiplierBonus: 0
+    _attackSpeedMultiplierBonus: 0
+    _criticalRateBonus: 0
+    _rangeMultiplierBonus: 0.3
+    _projectileSpeedMultiplierBonus: 0
+    _penetrationBonus: 0
+    _effects: []
+  - _starLevel: 5
+    _displayName: "\u5263 \u26055"
+    _description: "\u56FA\u6709\u52B9\u679C: \u547D\u4E2D\u6642\u306B\u8FFD\u52A0\u30671\u56DE\u30C0\u30E1\u30FC\u30B8"
+    _damageMultiplierBonus: 0
+    _attackSpeedMultiplierBonus: 0
+    _criticalRateBonus: 0
+    _rangeMultiplierBonus: 0
+    _projectileSpeedMultiplierBonus: 0
+    _penetrationBonus: 0
+    _effects:
     - {fileID: 11400000, guid: 73af781ea1ef4b5884c5ec4b21010312, type: 2}
-  postMaxDamageMultiplierBonus: 0.15
-  attackRange: 2.2
-  attackAngle: 110
-  targetLayers:
+  _postMaxDamageMultiplierBonus: 0.15
+  _attackRange: 2.2
+  _attackAngle: 110
+  _targetLayers:
     serializedVersion: 2
     m_Bits: 0

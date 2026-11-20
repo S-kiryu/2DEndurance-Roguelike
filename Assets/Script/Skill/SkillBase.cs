@@ -19,7 +19,9 @@ public sealed class SkillContext
     public PlayerPresenter Player { get; }
     public WeaponManager Weapons { get; }
 
-    /// <summary>今回のスキルが参照するプレイヤーと所持武器を保持する。</summary>
+    /// <summary>
+    /// 今回のスキルが参照するプレイヤーと所持武器を保持する。
+    /// </summary>
     public SkillContext(PlayerPresenter player, WeaponManager weapons)
     {
         Player = player;
@@ -27,7 +29,7 @@ public sealed class SkillContext
     }
 }
 
-/// <summary>1回の抽選に表示する、適用先まで確定済みの候補。</summary>
+/// <summary>1回の抽選に表示するデータ</summary>
 public sealed class SkillCandidate
 {
     public SkillBase Skill { get; }
@@ -73,16 +75,10 @@ public sealed class SkillCandidate
 /// <summary>スキルの基底</summary>
 public abstract class SkillBase : ScriptableObject
 {
-    [SerializeField] private string displayName;
-    [SerializeField, TextArea(2, 5)] private string description;
-    [SerializeField] private Sprite icon;
-    [Tooltip("同じ内容の候補を、1回の3択に複数表示してよい場合だけ有効にします。")]
-    [SerializeField] private bool allowDuplicateInSameSelection;
-
-    public string DisplayName => displayName;
-    public virtual string Description => description;
-    public Sprite Icon => icon;
-    public bool AllowDuplicateInSameSelection => allowDuplicateInSameSelection;
+    public string DisplayName => _displayName;
+    public virtual string Description => _description;
+    public Sprite Icon => _icon;
+    public bool AllowDuplicateInSameSelection => _allowDuplicateInSameSelection;
     public abstract SkillCategory Category { get; }
 
     /// <summary>現在の状態でスキルを適用できるか調べる。</summary>
@@ -105,7 +101,7 @@ public abstract class SkillBase : ScriptableObject
         }
     }
 
-    /// <summary>同じ内容の候補を判別するキーを返す。</summary>
+    /// <summary>同じカードが存在しているかどうかを確認する</summary>
     public virtual string GetSelectionIdentity(SkillContext context)
     {
         return $"{GetType().FullName}|{DisplayName}|{Description}";
@@ -116,4 +112,10 @@ public abstract class SkillBase : ScriptableObject
     {
         return TryApply(context);
     }
+
+    [SerializeField] private string _displayName;
+    [SerializeField, TextArea(2, 5)] private string _description;
+    [SerializeField] private Sprite _icon;
+    [Tooltip("同じ内容の候補を、1回の3択に複数表示してよい場合だけ有効にします。")]
+    [SerializeField] private bool _allowDuplicateInSameSelection;
 }

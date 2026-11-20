@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b0dfab51e81a244daf559ab89dfb6a8, type: 3}
   m_Name: MachineGunData
   m_EditorClassIdentifier: Assembly-CSharp::GunData
-  stats:
+  _stats:
     WeaponName: "\u30DE\u30B7\u30F3\u30AC\u30F3"
     Icon: {fileID: 0}
     Description: "\u5F3E\u3092\u7D20\u65E9\u304F\u9023\u5C04\u3059\u308B\u6B66\u5668"
@@ -21,53 +21,54 @@ MonoBehaviour:
     CriticalMultiplier: 2
     AttackInterval: 0.08
     MaxEnchantLevel: 5
-  weaponPrefab: {fileID: 8114830943139020147, guid: a18f52431dcc4c46b4193131e7390106, type: 3}
-  upgradeStages:
-  - starLevel: 2
-    displayName: "Machine Gun \u26052"
-    description: "\u653B\u6483\u529B +20%"
-    damageMultiplierBonus: 0.2
-    attackSpeedMultiplierBonus: 0
-    criticalRateBonus: 0
-    rangeMultiplierBonus: 0
-    projectileSpeedMultiplierBonus: 0
-    penetrationBonus: 0
-    effects: []
-  - starLevel: 3
-    displayName: "Machine Gun \u26053"
-    description: "\u653B\u6483\u901F\u5EA6 +25%"
-    damageMultiplierBonus: 0
-    attackSpeedMultiplierBonus: 0.25
-    criticalRateBonus: 0
-    rangeMultiplierBonus: 0
-    projectileSpeedMultiplierBonus: 0
-    penetrationBonus: 0
-    effects: []
-  - starLevel: 4
-    displayName: "Machine Gun \u26054"
-    description: "\u5F3E\u901F +25%\u3001\u8CAB\u901A +1"
-    damageMultiplierBonus: 0
-    attackSpeedMultiplierBonus: 0
-    criticalRateBonus: 0
-    rangeMultiplierBonus: 0
-    projectileSpeedMultiplierBonus: 0.25
-    penetrationBonus: 1
-    effects: []
-  - starLevel: 5
-    displayName: "Machine Gun \u26055"
-    description: "\u653B\u6483\u901F\u5EA6 +50%"
-    damageMultiplierBonus: 0
-    attackSpeedMultiplierBonus: 0
-    criticalRateBonus: 0
-    rangeMultiplierBonus: 0
-    projectileSpeedMultiplierBonus: 0
-    penetrationBonus: 0
-    effects: []
-  postMaxDamageMultiplierBonus: 0.15
-  projectilePrefab: {fileID: 5005, guid: 16382bc6a82a481da5eb6069951347f1, type: 3}
-  projectileSpeed: 12
-  penetrationCount: 0
-  projectileCount: 1
-  spreadAngle: 0
-  burstCount: 1
-  burstInterval: 0.08
+  _weaponPrefab: {fileID: 8114830943139020147, guid: a18f52431dcc4c46b4193131e7390106, type: 3}
+  _orbitEnabled: 1
+  _upgradeStages:
+  - _starLevel: 2
+    _displayName: "Machine Gun \u26052"
+    _description: "\u653B\u6483\u529B +20%"
+    _damageMultiplierBonus: 0.2
+    _attackSpeedMultiplierBonus: 0
+    _criticalRateBonus: 0
+    _rangeMultiplierBonus: 0
+    _projectileSpeedMultiplierBonus: 0
+    _penetrationBonus: 0
+    _effects: []
+  - _starLevel: 3
+    _displayName: "Machine Gun \u26053"
+    _description: "\u653B\u6483\u901F\u5EA6 +25%"
+    _damageMultiplierBonus: 0
+    _attackSpeedMultiplierBonus: 0.25
+    _criticalRateBonus: 0
+    _rangeMultiplierBonus: 0
+    _projectileSpeedMultiplierBonus: 0
+    _penetrationBonus: 0
+    _effects: []
+  - _starLevel: 4
+    _displayName: "Machine Gun \u26054"
+    _description: "\u5F3E\u901F +25%\u3001\u8CAB\u901A +1"
+    _damageMultiplierBonus: 0
+    _attackSpeedMultiplierBonus: 0
+    _criticalRateBonus: 0
+    _rangeMultiplierBonus: 0
+    _projectileSpeedMultiplierBonus: 0.25
+    _penetrationBonus: 1
+    _effects: []
+  - _starLevel: 5
+    _displayName: "Machine Gun \u26055"
+    _description: "\u653B\u6483\u901F\u5EA6 +50%"
+    _damageMultiplierBonus: 0
+    _attackSpeedMultiplierBonus: 0
+    _criticalRateBonus: 0
+    _rangeMultiplierBonus: 0
+    _projectileSpeedMultiplierBonus: 0
+    _penetrationBonus: 0
+    _effects: []
+  _postMaxDamageMultiplierBonus: 0.15
+  _projectilePrefab: {fileID: 5005, guid: 16382bc6a82a481da5eb6069951347f1, type: 3}
+  _projectileSpeed: 12
+  _penetrationCount: 0
+  _projectileCount: 1
+  _spreadAngle: 0
+  _burstCount: 1
+  _burstInterval: 0.08

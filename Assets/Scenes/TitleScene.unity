@@ -470,8 +470,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: START
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 27842a153f0f3c5439b4d8cedfdaa76b, type: 2}
-  m_sharedMaterial: {fileID: -4046538265538176864, guid: 27842a153f0f3c5439b4d8cedfdaa76b, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 585c6abb5d1f105449d72d7b96bebd7a, type: 2}
+  m_sharedMaterial: {fileID: -6117080918003359385, guid: 585c6abb5d1f105449d72d7b96bebd7a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -607,8 +607,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: ENDURANCE ROGUELIKE
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 27842a153f0f3c5439b4d8cedfdaa76b, type: 2}
-  m_sharedMaterial: {fileID: -4046538265538176864, guid: 27842a153f0f3c5439b4d8cedfdaa76b, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 585c6abb5d1f105449d72d7b96bebd7a, type: 2}
+  m_sharedMaterial: {fileID: -6117080918003359385, guid: 585c6abb5d1f105449d72d7b96bebd7a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -738,7 +738,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e860a77fa91679428daa95a8b0b68f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TitleScreenUI
-  startButton: {fileID: 1148755775}
+  _startButton: {fileID: 1148755775}
 --- !u!114 &1953075358
 MonoBehaviour:
   m_ObjectHideFlags: 0
