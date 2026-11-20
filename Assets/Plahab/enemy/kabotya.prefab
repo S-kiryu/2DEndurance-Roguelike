@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 2126896159547484160, guid: be95fb8454053214ebed21340d885edd, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.82641506, g: 0.82641506, b: 0.82641506, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -92,6 +92,37 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
+--- !u!1 &3460617125758887274
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6354098162293761191}
+  m_Layer: 0
+  m_Name: MouthSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6354098162293761191
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3460617125758887274}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.75, y: -0.55, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6877462086536991541}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4699467800217755724
 GameObject:
   m_ObjectHideFlags: 0
@@ -341,14 +372,15 @@ Transform:
   m_GameObject: {fileID: 7743896693862657505}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -3.5, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalPosition: {x: 0, y: -3.8, z: 0}
+  m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2956629899228532083}
   - {fileID: 4593167074153388702}
   - {fileID: 8401508375352291146}
   - {fileID: 3452107717890766442}
+  - {fileID: 6354098162293761191}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5008655111169208875
@@ -401,7 +433,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7852762579922002859, guid: d2d950315c13e7f418c5e55771e39576, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.8235294, g: 0.8235294, b: 0.8235294, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -497,7 +529,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMove
   _moveSpeed: 1
-  _spriteFacesLeft: 1
+  _spriteFacesLeft: 0
   _shadowToMirror: {fileID: 3452107717890766442}
 --- !u!114 &1623824000643306243
 MonoBehaviour:
@@ -557,10 +589,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 7743896693862657505}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3fba3795fa2d36b4eb2484a019bb0e46, type: 3}
+  m_Script: {fileID: 11500000, guid: baacd1880734b3842aa028f85766f7f5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Dool
+  m_EditorClassIdentifier: Assembly-CSharp::kabotya
   _statusData: {fileID: 11400000, guid: 9e6b3560b8513a0489ace762f43f4627, type: 2}
+  _chibiPrefab: {fileID: 3775471668423853721, guid: c5eca8b9d1dd4825ae484b53ee73454e, type: 3}
+  _chibiCount: 3
+  _mouthSpawnPoint: {fileID: 6354098162293761191}
 --- !u!1 &8906421511503995711
 GameObject:
   m_ObjectHideFlags: 0
@@ -643,7 +678,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 3797744221008642963, guid: 998848542e914c94fb6d16da0b9d4feb, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.81886786, g: 0.81886786, b: 0.81886786, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

@@ -7,6 +7,12 @@ using UnityEngine;
 public sealed class WaveEnemyHandle : MonoBehaviour
 {
     public event Action<WaveEnemyHandle> Removed;
+    public event Action<WaveEnemyHandle> ChildSpawned;
+
+    internal void NotifyChildSpawned(WaveEnemyHandle enemy)
+    {
+        ChildSpawned?.Invoke(enemy);
+    }
 
     private bool _removed;
 
@@ -35,5 +41,6 @@ public sealed class WaveEnemyHandle : MonoBehaviour
         _removed = true;
         Removed?.Invoke(this);
         Removed = null;
+        ChildSpawned = null;
     }
 }

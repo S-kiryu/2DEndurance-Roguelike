@@ -333,9 +333,11 @@ public sealed class WaveController : MonoBehaviour
     /// <param name="enemyPrefab"></param>
     private void SpawnEnemy(GameObject enemyPrefab)
     {
-        WaveEnemyHandle enemy =
-            _enemySpawner.Spawn(enemyPrefab, _currentEnemyStatScale);
+        TrackEnemy(_enemySpawner.Spawn(enemyPrefab, _currentEnemyStatScale));
+    }
 
+    private void TrackEnemy(WaveEnemyHandle enemy)
+    {
         if (ReferenceEquals(enemy, null))
         {
             return;
@@ -344,6 +346,7 @@ public sealed class WaveController : MonoBehaviour
         if (_aliveEnemies.Add(enemy))
         {
             enemy.Removed += OnEnemyRemoved;
+            enemy.ChildSpawned += TrackEnemy;
         }
     }
 
@@ -360,6 +363,7 @@ public sealed class WaveController : MonoBehaviour
         }
 
         enemy.Removed -= OnEnemyRemoved;
+        enemy.ChildSpawned -= TrackEnemy;
         _aliveEnemies.Remove(enemy);
     }
 
@@ -422,6 +426,7 @@ public sealed class WaveController : MonoBehaviour
             if (enemy != null)
             {
                 enemy.Removed -= OnEnemyRemoved;
+                enemy.ChildSpawned -= TrackEnemy;
             }
         }
 

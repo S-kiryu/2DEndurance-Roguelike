@@ -18,8 +18,8 @@ MonoBehaviour:
   _spawnTiming: 0
   _waves:
   - _enemies:
-    - _enemyId: kimo
-      _count: 10
+    - _enemyId: kabotya
+      _count: 1
   _endlessGrowth:
   - _enemyId: kimo
     _increaseCount: 1
