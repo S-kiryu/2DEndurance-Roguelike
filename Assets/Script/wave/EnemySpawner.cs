@@ -5,15 +5,7 @@ using UnityEngine;
 /// </summary>
 public sealed class EnemySpawner : MonoBehaviour
 {
-    [SerializeField]
-    private GameObjectPool objectPool;
-
-    [SerializeField]
-    private Transform[] spawnPoints;
-    [SerializeField]
-    private GameObject player;
-
-    public bool IsReady => objectPool != null && objectPool.IsReady;
+    public bool IsReady => _objectPool != null && _objectPool.IsReady;
 
     /// <summary>
     /// 敵のスポーン処理
@@ -25,6 +17,12 @@ public sealed class EnemySpawner : MonoBehaviour
         return Spawn(enemyPrefab, EnemyStatScale.Default);
     }
 
+    /// <summary>
+    /// スポーン処理
+    /// </summary>
+    /// <param name="enemyPrefab"></param>
+    /// <param name="statScale"></param>
+    /// <returns></returns>
     public WaveEnemyHandle Spawn(GameObject enemyPrefab, EnemyStatScale statScale)
     {
         if (!IsReady)
@@ -41,9 +39,12 @@ public sealed class EnemySpawner : MonoBehaviour
 
         Transform spawnPoint = GetRandomSpawnPoint();
 
-        GameObject enemy = objectPool.Spawn(
+        Vector3 spawnPosition = spawnPoint.position;
+        spawnPosition.y = enemyPrefab.transform.position.y;
+
+        GameObject enemy = _objectPool.Spawn(
             enemyPrefab,
-            spawnPoint.position,
+            spawnPosition,
             spawnPoint.rotation
         );
 
@@ -56,7 +57,7 @@ public sealed class EnemySpawner : MonoBehaviour
 
         if (enemyBase != null)
         {
-            enemyBase.Initialize(player, statScale);
+            enemyBase.Initialize(_player, statScale);
         }
 
         WaveEnemyHandle handle =
@@ -65,19 +66,27 @@ public sealed class EnemySpawner : MonoBehaviour
         return handle;
     }
 
+    [SerializeField]
+    private GameObjectPool _objectPool;
+
+    [SerializeField]
+    private Transform[] _spawnPoints;
+    [SerializeField]
+    private GameObject _player;
+
     /// <summary>
     /// ランダムでスポーン位置を決める
     /// </summary>
     /// <returns></returns>
     private Transform GetRandomSpawnPoint()
     {
-        if (spawnPoints == null || spawnPoints.Length == 0)
+        if (_spawnPoints == null || _spawnPoints.Length == 0)
         {
             return transform;
         }
 
-        int index = Random.Range(0, spawnPoints.Length);
-        Transform spawnPoint = spawnPoints[index];
+        int index = Random.Range(0, _spawnPoints.Length);
+        Transform spawnPoint = _spawnPoints[index];
 
         return spawnPoint != null
             ? spawnPoint

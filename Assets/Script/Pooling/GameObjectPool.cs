@@ -6,69 +6,38 @@ using UnityEngine;
 [Serializable]
 public sealed class PoolPrewarmEntry
 {
-    [SerializeField] private GameObject prefab;
-    [SerializeField, Min(0)] private int count;
+    public GameObject Prefab => _prefab;
+    public int Count => _count;
 
-    public GameObject Prefab => prefab;
-    public int Count => count;
+    [SerializeField] private GameObject _prefab;
+    [SerializeField, Min(0)] private int _count;
 }
 
 /// <summary>
-/// Prefab単位の汎用プール
+/// ゲームオブジェクトのプール
 /// </summary>
 [DefaultExecutionOrder(-1000)]
 [DisallowMultipleComponent]
 public sealed class GameObjectPool : MonoBehaviour
 {
-    [Tooltip("シーンに配置した待機用の子オブジェクト")]
-    [SerializeField] private Transform storage;
-
-    [Tooltip("ゲーム開始時に確保する個体。以降は不足した分だけ生成します。")]
-    [SerializeField] private List<PoolPrewarmEntry> prewarmEntries = new();
-
-    private readonly Dictionary<GameObject, Stack<PooledObject>> inactive = new();
-    private readonly HashSet<PooledObject> instances = new();
-    private bool initialized;
-    private bool shuttingDown;
-
-    public bool IsReady => initialized && !shuttingDown && isActiveAndEnabled;
-
-    private void Awake()
-    {
-        if (storage == null || storage == transform || !storage.IsChildOf(transform))
-        {
-            Debug.LogError("GameObjectPoolのStorageに、シーンへ配置した待機用の子オブジェクトを設定してください。", this);
-            enabled = false;
-            return;
-        }
-
-        storage.gameObject.SetActive(false);
-        initialized = true;
-        foreach (PoolPrewarmEntry entry in prewarmEntries)
-        {
-            if (entry != null)
-            {
-                Prewarm(entry.Prefab, entry.Count);
-            }
-        }
-    }
+    public bool IsReady => _initialized && !_shuttingDown && isActiveAndEnabled;
 
     /// <summary>
     /// 指定したプレハブを出現させる
     /// </summary>
-    /// <param name="prefab"></param>
-    /// <param name="position"></param>
-    /// <param name="rotation"></param>
-    /// <returns></returns>
+    /// <param name="prefab">出現させたいプレハブ</param>
+    /// <param name="position">位置</param>
+    /// <param name="rotation">回転</param>
+    /// <returns>出現したインスタンス</returns>
     public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)
     {
-        if (!IsReady || !ValidatePrefab(prefab))
+        if (!IsReady || prefab == null)
         {
             return null;
         }
 
-        Stack<PooledObject> stack = GetStack(prefab);
-        PooledObject instance = null;
+        Stack<GameObject> stack = GetStack(prefab);
+        GameObject instance = null;
         while (stack.Count > 0 && instance == null)
         {
             instance = stack.Pop();
@@ -81,12 +50,19 @@ public sealed class GameObjectPool : MonoBehaviour
 
         instance.transform.SetParent(null, false);
         instance.transform.SetPositionAndRotation(position, rotation);
-        instance.IsSpawned = true;
-        instance.PrepareForSpawn();
-        instance.gameObject.SetActive(true);
-        return instance.gameObject;
+        _instances[instance].PrepareForSpawn(instance.transform);
+        instance.SetActive(true);
+        return instance;
     }
 
+    /// <summary>
+    /// コンポーメントを指定して出現させる
+    /// </summary>
+    /// <typeparam name="T">コンポーメントの型</typeparam>
+    /// <param name="prefab">出現させたいコンポーメント</param>
+    /// <param name="position">生成位置</param>
+    /// <param name="rotation">回転</param>
+    /// <returns></returns>
     public T Spawn<T>(T prefab, Vector3 position, Quaternion rotation) where T : Component
     {
         if (prefab == null)
@@ -101,12 +77,12 @@ public sealed class GameObjectPool : MonoBehaviour
     /// <summary>戦闘開始前などに個体を確保して初回生成の負荷を分散できる。</summary>
     public void Prewarm(GameObject prefab, int count)
     {
-        if (!IsReady || !ValidatePrefab(prefab))
+        if (!IsReady || prefab == null)
         {
             return;
         }
 
-        Stack<PooledObject> stack = GetStack(prefab);
+        Stack<GameObject> stack = GetStack(prefab);
         int target = Mathf.Max(0, count);
         while (stack.Count < target)
         {
@@ -114,7 +90,9 @@ public sealed class GameObjectPool : MonoBehaviour
         }
     }
 
-    /// <summary>プール由来なら返却。それ以外の個体は通常どおり破棄する。</summary>
+    /// <summary>
+    /// プール由来なら返却、それ以外の個体は通常どおり破棄する。
+    /// </summary>
     public static void Despawn(GameObject instance)
     {
         if (instance == null)
@@ -122,33 +100,73 @@ public sealed class GameObjectPool : MonoBehaviour
             return;
         }
 
-        if (instance.TryGetComponent(out PooledObject pooled) && pooled.Owner != null)
+        GameObjectPool pool = _scenePool;
+        if (pool != null && pool._instances.TryGetValue(instance, out InstanceData data))
         {
-            pooled.Release();
+            pool.Release(instance, data);
             return;
         }
 
         Destroy(instance);
     }
 
+    internal static GameObjectPool FindPoolFor(GameObject instance)
+    {
+        return _scenePool != null && instance != null && _scenePool._instances.ContainsKey(instance)
+            ? _scenePool
+            : null;
+    }
+
     /// <summary>
     /// プールに戻す処理
     /// </summary>
     /// <param name="instance"></param>
-    internal void Release(PooledObject instance)
+    private void Release(GameObject instance, InstanceData data)
     {
-        if (shuttingDown || instance.Owner != this || !instance.IsSpawned)
+        if (_shuttingDown || !instance.activeSelf)
         {
             return;
         }
 
-        // 通知から再度返却されても二重登録しない。
-        instance.IsSpawned = false;
-        instance.PrepareForDespawn();
-        instance.gameObject.SetActive(false);
-        instance.transform.SetParent(storage, false);
+        // 先に無効化して、通知中の二重返却を防ぐ。
+        instance.SetActive(false);
+        data.NotifyDespawned();
+        instance.transform.SetParent(_storage, false);
 
-        GetStack(instance.Prefab).Push(instance);
+        GetStack(data.Prefab).Push(instance);
+    }
+
+    [Tooltip("シーンに配置した待機用の子オブジェクト")]
+    [SerializeField] private Transform _storage;
+
+    [Tooltip("ゲーム開始時に確保する個体。以降は不足した分だけ生成します。")]
+    [SerializeField] private List<PoolPrewarmEntry> _prewarmEntries = new();
+
+    private static GameObjectPool _scenePool;
+    private readonly Dictionary<GameObject, Stack<GameObject>> _inactive = new();
+    private readonly Dictionary<GameObject, InstanceData> _instances = new();
+    private bool _initialized;
+    private bool _shuttingDown;
+
+    private void Awake()
+    {
+        if (_storage == null || _storage == transform || !_storage.IsChildOf(transform))
+        {
+            Debug.LogError("GameObjectPoolのStorageに、シーンへ配置した待機用の子オブジェクトを設定してください。", this);
+            enabled = false;
+            return;
+        }
+
+        _storage.gameObject.SetActive(false);
+        _initialized = true;
+        _scenePool = this;
+        foreach (PoolPrewarmEntry entry in _prewarmEntries)
+        {
+            if (entry != null)
+            {
+                Prewarm(entry.Prefab, entry.Count);
+            }
+        }
     }
 
     /// <summary>
@@ -156,12 +174,12 @@ public sealed class GameObjectPool : MonoBehaviour
     /// </summary>
     /// <param name="prefab">数が欲しいプレハブ</param>
     /// <returns></returns>
-    private Stack<PooledObject> GetStack(GameObject prefab)
+    private Stack<GameObject> GetStack(GameObject prefab)
     {
-        if (!inactive.TryGetValue(prefab, out Stack<PooledObject> stack))
+        if (!_inactive.TryGetValue(prefab, out Stack<GameObject> stack))
         {
-            stack = new Stack<PooledObject>();
-            inactive.Add(prefab, stack);
+            stack = new Stack<GameObject>();
+            _inactive.Add(prefab, stack);
         }
 
         return stack;
@@ -172,45 +190,71 @@ public sealed class GameObjectPool : MonoBehaviour
     /// </summary>
     /// <param name="prefab">生成するプレハブ</param>
     /// <returns></returns>
-    private PooledObject CreateInstance(GameObject prefab)
+    private GameObject CreateInstance(GameObject prefab)
     {
         // 最初から非アクティブな親の下に作り、初期化前のOnEnableを防ぐ。
-        GameObject instance = Instantiate(prefab, storage);
+        GameObject instance = Instantiate(prefab, _storage);
         instance.SetActive(false);
-        PooledObject pooled = instance.GetComponent<PooledObject>();
-        pooled.Initialize(this, prefab);
-        instances.Add(pooled);
-        return pooled;
-    }
-
-    /// <summary>
-    /// 必要なコンポーメントがついているかの判定
-    /// </summary>
-    /// <param name="prefab">判定するプレハブ</param>
-    /// <returns></returns>
-    private bool ValidatePrefab(GameObject prefab)
-    {
-        if (prefab == null || !prefab.TryGetComponent<PooledObject>(out _))
-        {
-            Debug.LogError("プール対象のPrefabのルートにPooledObjectを事前に設定してください。", this);
-            return false;
-        }
-
-        return true;
+        _instances.Add(instance, new InstanceData(instance, prefab));
+        return instance;
     }
 
     private void OnDestroy()
     {
-        shuttingDown = true;
-        inactive.Clear();
-        foreach (PooledObject instance in instances)
+        _shuttingDown = true;
+        _inactive.Clear();
+        foreach (GameObject instance in _instances.Keys)
         {
             if (instance != null)
             {
-                Destroy(instance.gameObject);
+                Destroy(instance);
             }
         }
 
-        instances.Clear();
+        _instances.Clear();
+        if (_scenePool == this)
+            _scenePool = null;
+    }
+
+    /// <summary>
+    /// 再利用するオブジェクト1個分の情報
+    /// </summary>
+    private sealed class InstanceData
+    {
+        public GameObject Prefab { get; }
+
+        private readonly Vector3 _originalScale;
+        private readonly Rigidbody2D[] _bodies;
+        private readonly IPoolable[] _callbacks;
+
+        public InstanceData(GameObject instance, GameObject prefab)
+        {
+            Prefab = prefab;
+            _originalScale = prefab.transform.localScale;
+            _bodies = instance.GetComponentsInChildren<Rigidbody2D>(true);
+            _callbacks = instance.GetComponentsInChildren<IPoolable>(true);
+        }
+
+        public void PrepareForSpawn(Transform instanceTransform)
+        {
+            instanceTransform.localScale = _originalScale;
+            foreach (Rigidbody2D body in _bodies)
+            {
+                if (body == null)
+                    continue;
+
+                body.linearVelocity = Vector2.zero;
+                body.angularVelocity = 0f;
+            }
+
+            foreach (IPoolable listener in _callbacks)
+                listener.OnPoolSpawned();
+        }
+
+        public void NotifyDespawned()
+        {
+            foreach (IPoolable listener in _callbacks)
+                listener.OnPoolDespawned();
+        }
     }
 }

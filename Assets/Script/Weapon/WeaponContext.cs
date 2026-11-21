@@ -12,14 +12,6 @@ public sealed class WeaponContext
     public int StarLevel => Weapon.StarLevel;
     public bool IsActive => Weapon != null && Weapon.Context == this && Weapon.isActiveAndEnabled;
 
-    internal WeaponContext(Weapon weapon, PlayerModel ownerStats, GameObjectPool pool)
-    {
-        Weapon = weapon;
-        Owner = weapon.transform.root.gameObject;
-        OwnerStats = ownerStats;
-        Pool = pool;
-    }
-
     public Collider2D[] FindTargets(Vector2 center, float radius, LayerMask layers)
     {
         return Physics2D.OverlapCircleAll(center, Mathf.Max(0f, radius),
@@ -35,6 +27,14 @@ public sealed class WeaponContext
     public void DealEffectDamage(Collider2D target, int amount)
     {
         if (IsActive) DealDamage(target, amount, false);
+    }
+
+    internal WeaponContext(Weapon weapon, PlayerModel ownerStats, GameObjectPool pool)
+    {
+        Weapon = weapon;
+        Owner = weapon.transform.root.gameObject;
+        OwnerStats = ownerStats;
+        Pool = pool;
     }
 
     // 発射済みの弾は武器が無効でも通常ダメージを与える。追加効果は有効なContextだけが処理する。

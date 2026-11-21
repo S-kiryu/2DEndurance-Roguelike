@@ -8,15 +8,64 @@ public sealed class GameSessionManager : MonoBehaviour
 {
     public event Action GameOver;
 
-    [SerializeField] private PlayerPresenter player;
-    [SerializeField] private WaveController waveController;
-    [SerializeField] private GameSessionUI sessionUI;
-
     public float SurvivalTime { get; private set; }
     public int ReachedWave { get; private set; } = 1;
     public bool IsGameOver { get; private set; }
 
-    private bool isLeavingScene;
+    /// <summary>
+    /// セッションをリセットする関数
+    /// </summary>
+    public void RestartRun()
+    {
+        if (_isLeavingScene || !IsGameOver) return;
+        _isLeavingScene = true;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(gameObject.scene.path);
+    }
+
+    /// <summary>
+    /// タイトルに戻る関数
+    /// </summary>
+    public void ReturnToTitle()
+    {
+        if (_isLeavingScene || !IsGameOver) return;
+        _isLeavingScene = true;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(TitleScreenUI.ScenePath);
+    }
+
+    internal bool TryPauseForSkillSelection()
+    {
+        if (!isActiveAndEnabled || IsGameOver || _pausedForSkillSelection || Time.timeScale <= 0f)
+        {
+            return false;
+        }
+
+        _timeScaleBeforeSkillSelection = Time.timeScale;
+        _pausedForSkillSelection = true;
+        Time.timeScale = 0f;
+        return true;
+    }
+
+    internal void ResumeAfterSkillSelection()
+    {
+        if (!_pausedForSkillSelection)
+            return;
+
+        _pausedForSkillSelection = false;
+        if (!IsGameOver)
+        {
+            Time.timeScale = _timeScaleBeforeSkillSelection;
+        }
+    }
+
+    [SerializeField] private PlayerPresenter _player;
+    [SerializeField] private WaveController _waveController;
+    [SerializeField] private GameSessionUI _sessionUI;
+
+    private bool _isLeavingScene;
+    private bool _pausedForSkillSelection;
+    private float _timeScaleBeforeSkillSelection;
 
     private void Awake()
     {
@@ -28,26 +77,26 @@ public sealed class GameSessionManager : MonoBehaviour
 
     private void Start()
     {
-        if (sessionUI != null)
+        if (_sessionUI != null)
         {
-            sessionUI.Initialize(this);
+            _sessionUI.Initialize(this);
             RefreshUI();
         }
     }
 
     private void OnEnable()
     {
-        if (player != null)
+        if (_player != null)
         {
-            player.PlayerDied += OnPlayerDied;
+            _player.PlayerDied += OnPlayerDied;
         }
     }
 
     private void OnDisable()
     {
-        if (player != null)
+        if (_player != null)
         {
-            player.PlayerDied -= OnPlayerDied;
+            _player.PlayerDied -= OnPlayerDied;
         }
     }
 
@@ -61,22 +110,6 @@ public sealed class GameSessionManager : MonoBehaviour
         RefreshUI();
     }
 
-    public void RestartRun()
-    {
-        if (isLeavingScene || !IsGameOver) return;
-        isLeavingScene = true;
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(gameObject.scene.path);
-    }
-
-    public void ReturnToTitle()
-    {
-        if (isLeavingScene || !IsGameOver) return;
-        isLeavingScene = true;
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(TitleScreenUI.ScenePath);
-    }
-
     private void OnPlayerDied()
     {
         if (IsGameOver)
@@ -85,31 +118,33 @@ public sealed class GameSessionManager : MonoBehaviour
         }
 
         IsGameOver = true;
-        ReachedWave = waveController != null
-            ? Mathf.Max(1, waveController.ReachedWaveNumber)
+        ReachedWave = _waveController != null
+            ? Mathf.Max(1, _waveController.ReachedWaveNumber)
             : 1;
         Time.timeScale = 0f;
-        sessionUI?.ShowGameOver(SurvivalTime, ReachedWave);
+        _sessionUI?.ShowGameOver(SurvivalTime, ReachedWave);
         GameOver?.Invoke();
     }
 
+    /// <summary>
+    /// UIを更新する関数
+    /// </summary>
     private void RefreshUI()
     {
-        if (sessionUI == null || player == null)
+        if (_sessionUI == null || _player == null)
         {
             return;
         }
 
-        int wave = waveController != null
-            ? Mathf.Max(1, waveController.ReachedWaveNumber)
+        int wave = _waveController != null
+            ? Mathf.Max(1, _waveController.ReachedWaveNumber)
             : 1;
-        float remaining = waveController != null
-            ? waveController.WaveRemainingTime
+        float remaining = _waveController != null
+            ? _waveController.WaveRemainingTime
             : 0f;
 
-        sessionUI.RefreshHud(
-            player.Model.CurrentHealth,
-            player.Model.MaxHealth,
+        _sessionUI.RefreshHud(
+            _player.Model,
             SurvivalTime,
             wave,
             remaining

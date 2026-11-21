@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,109 +7,42 @@ using UnityEngine;
 /// </summary>
 public class WeaponManager : MonoBehaviour
 {
-    [Header("シーン上の共通プール")]
-    [SerializeField] private GameObjectPool objectPool;
+    public event Action<Weapon> WeaponAdded;
+    public event Action<Weapon> WeaponRemoved;
 
-    [Header("武器の所有者")]
-    [SerializeField] private PlayerPresenter player;
-
-    [Header("装備位置")]
-    [SerializeField]
-    private Transform weaponMount;
-
-    [Header("装備中の武器")]
-    [SerializeField]
-    private List<Weapon> weapons = new();
-
-    [Header("開始時に装備する武器")]
-    [SerializeField]
-    private List<WeaponData> startingWeapons = new();
-
-    [Header("所持上限")]
-    [SerializeField, Min(1)]
-    private int maxWeaponCount = 6;
-
-    public IReadOnlyList<Weapon> Weapons => weapons;
-    public int MaxWeaponCount => Mathf.Max(1, maxWeaponCount);
-    public bool HasCapacity => weapons.Count < MaxWeaponCount;
-
-    private void Awake()
+    public IReadOnlyList<Weapon> Weapons => _weapons;
+    public int MaxWeaponCount => Mathf.Max(1, _maxWeaponCount);
+    public bool HasCapacity
     {
-        if (weaponMount == null)
+        get
         {
-            weaponMount = transform;
-        }
-
-        if (player == null)
-        {
-            player = weaponMount.GetComponentInParent<PlayerPresenter>();
-        }
-
-        var initialWeapons = new List<Weapon>(weapons);
-        weapons.Clear();
-        foreach (Weapon weapon in initialWeapons)
-        {
-            if (weapon == null || weapons.Contains(weapon))
+            int equippedCount = 0;
+            foreach (Weapon weapon in _weapons)
             {
-                continue;
+                if (weapon != null)
+                    equippedCount++;
             }
-            if (!AddWeapon(weapon))
-            {
-                weapon.Unequip();
-            }
-        }
-
-        foreach (WeaponData weaponData in startingWeapons)
-        {
-            if (weaponData != null && !HasWeapon(weaponData))
-            {
-                EquipWeapon(weaponData);
-            }
+            return equippedCount < MaxWeaponCount;
         }
     }
 
-    private void Update()
-    {
-        float deltaTime = Time.deltaTime;
-
-        for (int i = weapons.Count - 1; i >= 0; i--)
-        {
-            Weapon weapon = weapons[i];
-
-            if (weapon == null)
-            {
-                weapons.RemoveAt(i);
-                continue;
-            }
-
-            weapon.Tick(deltaTime);
-        }
-    }
+    public bool CanEquipWeapon(WeaponData weaponData) =>
+        GetEquipError(weaponData != null ? weaponData.WeaponPrefab : null, weaponData) == null;
 
     /// <summary>
     /// 武器データに登録されたPrefabを生成して装備する
     /// </summary>
     public Weapon EquipWeapon(WeaponData weaponData)
     {
-        if (weaponData == null || weaponData.WeaponPrefab == null)
+        Weapon prefab = weaponData != null ? weaponData.WeaponPrefab : null;
+        string error = GetEquipError(prefab, weaponData);
+        if (error != null)
         {
-            Debug.LogWarning("WeaponDataまたはWeaponPrefabが設定されていません。", this);
+            Debug.LogWarning(error, this);
             return null;
         }
 
-        if (HasWeapon(weaponData))
-        {
-            Debug.LogWarning($"{weaponData.name}は既に装備しています。", this);
-            return null;
-        }
-
-        if (!HasCapacity)
-        {
-            Debug.LogWarning($"武器所持数が上限（{MaxWeaponCount}）です。", this);
-            return null;
-        }
-
-        Weapon weapon = Instantiate(weaponData.WeaponPrefab, weaponMount);
+        Weapon weapon = Instantiate(prefab, _weaponMount);
 
         if (!AddWeapon(weapon, weaponData))
         {
@@ -124,45 +58,32 @@ public class WeaponManager : MonoBehaviour
     /// </summary>
     public bool AddWeapon(Weapon weapon, WeaponData weaponData = null)
     {
-        if (weapon == null || weapons.Contains(weapon))
+        if (weapon == null || _weapons.Contains(weapon))
             return false;
 
         WeaponData targetData = weaponData != null ? weaponData : weapon.WeaponData;
-        if (HasWeapon(targetData))
+        string error = GetEquipError(weapon, targetData);
+        if (error != null)
         {
-            Debug.LogWarning($"{targetData.name}は既に装備しています。", this);
+            Debug.LogWarning(error, this);
             return false;
         }
 
-        if (!HasCapacity)
-        {
-            Debug.LogWarning($"武器所持数が上限（{MaxWeaponCount}）です。", this);
-            return false;
-        }
-
-        if (!InitializeWeapon(weapon, weaponData))
+        if (!InitializeWeapon(weapon, targetData))
             return false;
 
-        weapons.Add(weapon);
+        _weapons.Add(weapon);
+        if (targetData is SwordData { UsePlayerAnimation: true } && _playerView != null)
+            _playerView.EquipNata();
+
+        WeaponAdded?.Invoke(weapon);
         return true;
     }
 
     /// <summary>同じWeaponDataを使う武器は、1つだけ所持できる。</summary>
-    public bool HasWeapon(WeaponData weaponData)
-    {
-        if (weaponData == null)
-        {
-            return false;
-        }
-        foreach (Weapon weapon in weapons)
-        {
-            if (weapon != null && weapon.WeaponData == weaponData)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
+    public bool HasWeapon(WeaponData weaponData) => GetWeapon(weaponData) != null;
+
+    public bool OwnsWeapon(Weapon weapon) => weapon != null && _weapons.Contains(weapon);
 
     public Weapon GetWeapon(WeaponData weaponData)
     {
@@ -171,7 +92,7 @@ public class WeaponManager : MonoBehaviour
             return null;
         }
 
-        foreach (Weapon weapon in weapons)
+        foreach (Weapon weapon in _weapons)
         {
             if (weapon != null && weapon.WeaponData == weaponData)
             {
@@ -193,7 +114,7 @@ public class WeaponManager : MonoBehaviour
         if (weapon == null)
             return false;
 
-        if (!weapons.Remove(weapon))
+        if (!_weapons.Remove(weapon))
             return false;
 
         weapon.Unequip();
@@ -203,7 +124,92 @@ public class WeaponManager : MonoBehaviour
             Destroy(weapon.gameObject);
         }
 
+        WeaponRemoved?.Invoke(weapon);
         return true;
+    }
+
+    [Header("シーン上の共通プール")]
+    [SerializeField] private GameObjectPool _objectPool;
+
+    [Header("武器の所有者")]
+    [SerializeField] private PlayerPresenter _player;
+
+    [Header("装備位置")]
+    [SerializeField]
+    private Transform _weaponMount;
+
+    [Header("装備中の武器")]
+    [SerializeField]
+    private List<Weapon> _weapons = new();
+
+    [Header("開始時に装備する武器")]
+    [SerializeField]
+    private List<WeaponData> _startingWeapons = new();
+
+    [Header("所持上限")]
+    [SerializeField, Min(1)]
+    private int _maxWeaponCount = 6;
+
+    private readonly List<Weapon> _weaponsToUpdate = new();
+    private PlayerView _playerView;
+
+    private void Awake()
+    {
+        if (_weaponMount == null)
+        {
+            _weaponMount = transform;
+        }
+
+        if (_player == null)
+        {
+            _player = _weaponMount.GetComponentInParent<PlayerPresenter>();
+        }
+        _playerView = _player != null ? _player.GetComponent<PlayerView>() : null;
+
+        var initialWeapons = new List<Weapon>(_weapons);
+        _weapons.Clear();
+        foreach (Weapon weapon in initialWeapons)
+        {
+            if (weapon == null || _weapons.Contains(weapon))
+            {
+                continue;
+            }
+            if (!AddWeapon(weapon))
+            {
+                weapon.Unequip();
+            }
+        }
+
+        foreach (WeaponData weaponData in _startingWeapons)
+        {
+            if (weaponData != null && !HasWeapon(weaponData))
+            {
+                EquipWeapon(weaponData);
+            }
+        }
+    }
+
+    private void Update()
+    {
+        float deltaTime = Time.deltaTime;
+
+        // 攻撃・削除の通知先で装備が変わっても、更新中のリストを壊さない。
+        _weaponsToUpdate.AddRange(_weapons);
+        for (int i = _weaponsToUpdate.Count - 1; i >= 0; i--)
+        {
+            Weapon weapon = _weaponsToUpdate[i];
+
+            if (weapon == null)
+            {
+                if (_weapons.Remove(weapon))
+                    WeaponRemoved?.Invoke(weapon);
+            }
+            else if (OwnsWeapon(weapon))
+            {
+                weapon.Tick(deltaTime);
+            }
+        }
+        _weaponsToUpdate.Clear();
     }
 
     /// <summary>
@@ -212,14 +218,26 @@ public class WeaponManager : MonoBehaviour
     /// <param name="weapon"></param>
     /// <param name="weaponData"></param>
     /// <returns></returns>
-    private bool InitializeWeapon(Weapon weapon, WeaponData weaponData = null)
+    private bool InitializeWeapon(Weapon weapon, WeaponData weaponData)
     {
-        weapon.Equip(weaponMount);
+        weapon.Equip(_weaponMount);
 
-        if (weapon.Initialize(weaponData, player != null ? player.Model : null, objectPool))
+        if (weapon.Initialize(weaponData, _player != null ? _player.Model : null, _objectPool))
             return true;
 
         weapon.Unequip();
         return false;
+    }
+
+    private string GetEquipError(Weapon weapon, WeaponData weaponData)
+    {
+        if (weapon == null || weaponData == null)
+            return "WeaponDataまたはWeaponPrefabが設定されていません。";
+        if (HasWeapon(weaponData))
+            return $"{weaponData.name}は既に装備しています。";
+        if (!HasCapacity)
+            return $"武器所持数が上限（{MaxWeaponCount}）です。";
+
+        return weapon.GetInitializationError(weaponData, _objectPool);
     }
 }

@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d3317471bfe6e0458a95322a2e0c16b, type: 3}
   m_Name: TestEnemyStatus
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStatusData
-  maxHP: 50
-  damage: 10
-  speed: 2
+  _maxHP: 50
+  _damage: 10
+  _speed: 2
+  _experienceReward: 1
+  _experiencePickupPrefab: {fileID: 1006, guid: 451f57473229491d9210310d068128de, type: 3}

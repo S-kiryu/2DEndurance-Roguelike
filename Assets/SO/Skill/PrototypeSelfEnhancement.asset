@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6f708f7b4cb42578c651f4225b75b7f, type: 3}
   m_Name: PrototypeSelfEnhancement
   m_EditorClassIdentifier: Assembly-CSharp::SelfEnhancementSkill
-  displayName: "\u8EAB\u4F53\u5F37\u5316"
-  description: "\u6700\u5927HP +20\u3001\u79FB\u52D5\u901F\u5EA6 +1"
-  icon: {fileID: 0}
-  allowDuplicateInSameSelection: 0
-  additionalMaxHealth: 20
-  additionalMoveSpeed: 1
-  additionalAttackMultiplier: 0
-  additionalAttackSpeedMultiplier: 0
-  additionalCriticalRate: 0
+  _displayName: "\u8EAB\u4F53\u5F37\u5316"
+  _description: ""
+  _icon: {fileID: 21300000, guid: 7832af3322271b24e8cbda9adc5682a2, type: 3}
+  _allowDuplicateInSameSelection: 0
+  _additionalMaxHealth: 0
+  _additionalMoveSpeed: 0
+  _additionalAttackMultiplier: 0.2
+  _additionalAttackSpeedMultiplier: 0
+  _additionalCriticalRate: 0

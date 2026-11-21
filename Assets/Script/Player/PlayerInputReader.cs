@@ -6,36 +6,25 @@ using UnityEngine.InputSystem;
 /// </summary>
 public sealed class PlayerInputReader : MonoBehaviour
 {
-    /// <summary>ジャンプ入力を消費する</summary>
+    /// <summary>
+    /// 保留中のジャンプ入力を一度だけ取り出す。停止中は入力を破棄する。
+    /// </summary>
     public bool ConsumeJump()
     {
         if (Time.timeScale <= 0f)
         {
-            jumpRequested = false;
+            _jumpRequested = false;
             return false;
         }
 
-        if (!jumpRequested)
+        if (!_jumpRequested)
         {
             return false;
         }
 
-        jumpRequested = false;
+        _jumpRequested = false;
         return true;
     }
-
-    [SerializeField]
-    private InputActionReference moveLeftAction;
-
-    [SerializeField]
-    private InputActionReference moveRightAction;
-
-    [SerializeField]
-    private InputActionReference jumpAction;
-    private bool leftPressed;
-    private bool rightPressed;
-    private bool jumpRequested;
-    private float lastPressedDirection;
 
     /// <summary>
     /// 移動の数値　1右、-1左、0待機
@@ -44,17 +33,17 @@ public sealed class PlayerInputReader : MonoBehaviour
     {
         get
         {
-            if (leftPressed && rightPressed)
+            if (_leftPressed && _rightPressed)
             {
-                return lastPressedDirection;
+                return _lastPressedDirection;
             }
 
-            if (leftPressed)
+            if (_leftPressed)
             {
                 return -1f;
             }
 
-            if (rightPressed)
+            if (_rightPressed)
             {
                 return 1f;
             }
@@ -85,39 +74,61 @@ public sealed class PlayerInputReader : MonoBehaviour
         return mouseX < targetScreenX ? -1f : 1f;
     }
 
+    /// <summary>
+    /// ジャンプのキャンセル処理
+    /// </summary>
+    public void ClearJumpRequest()
+    {
+        _jumpRequested = false;
+    }
+
+    [SerializeField,Tooltip("左移動の入力アクション")]
+    private InputActionReference _moveLeftAction;
+
+    [SerializeField,Tooltip("右移動の入力アクション")]
+    private InputActionReference _moveRightAction;
+
+    [SerializeField,Tooltip("ジャンプの入力アクション")]
+    private InputActionReference _jumpAction;
+
+    private bool _leftPressed;
+    private bool _rightPressed;
+    private bool _jumpRequested;
+    private float _lastPressedDirection;
+
     private void OnEnable()
     {
-        moveLeftAction.action.performed += OnMoveLeft;
-        moveLeftAction.action.canceled += OnMoveLeft;
+        _moveLeftAction.action.performed += OnMoveLeft;
+        _moveLeftAction.action.canceled += OnMoveLeft;
 
-        moveRightAction.action.performed += OnMoveRight;
-        moveRightAction.action.canceled += OnMoveRight;
+        _moveRightAction.action.performed += OnMoveRight;
+        _moveRightAction.action.canceled += OnMoveRight;
 
-        jumpAction.action.performed += OnJump;
+        _jumpAction.action.performed += OnJump;
 
-        moveLeftAction.action.Enable();
-        moveRightAction.action.Enable();
-        jumpAction.action.Enable();
+        _moveLeftAction.action.Enable();
+        _moveRightAction.action.Enable();
+        _jumpAction.action.Enable();
     }
 
     private void OnDisable()
     {
-        moveLeftAction.action.performed -= OnMoveLeft;
-        moveLeftAction.action.canceled -= OnMoveLeft;
+        _moveLeftAction.action.performed -= OnMoveLeft;
+        _moveLeftAction.action.canceled -= OnMoveLeft;
 
-        moveRightAction.action.performed -= OnMoveRight;
-        moveRightAction.action.canceled -= OnMoveRight;
+        _moveRightAction.action.performed -= OnMoveRight;
+        _moveRightAction.action.canceled -= OnMoveRight;
 
-        jumpAction.action.performed -= OnJump;
+        _jumpAction.action.performed -= OnJump;
 
-        moveLeftAction.action.Disable();
-        moveRightAction.action.Disable();
-        jumpAction.action.Disable();
+        _moveLeftAction.action.Disable();
+        _moveRightAction.action.Disable();
+        _jumpAction.action.Disable();
 
-        leftPressed = false;
-        rightPressed = false;
-        jumpRequested = false;
-        lastPressedDirection = 0f;
+        _leftPressed = false;
+        _rightPressed = false;
+        _jumpRequested = false;
+        _lastPressedDirection = 0f;
     }
 
     /// <summary>
@@ -126,11 +137,11 @@ public sealed class PlayerInputReader : MonoBehaviour
     /// <param name="context"></param>
     private void OnMoveLeft(InputAction.CallbackContext context)
     {
-        leftPressed = context.ReadValueAsButton();
+        _leftPressed = context.ReadValueAsButton();
 
         if (context.performed)
         {
-            lastPressedDirection = -1f;
+            _lastPressedDirection = -1f;
         }
     }
 
@@ -139,11 +150,11 @@ public sealed class PlayerInputReader : MonoBehaviour
     /// </summary>
     private void OnMoveRight(InputAction.CallbackContext context)
     {
-        rightPressed = context.ReadValueAsButton();
+        _rightPressed = context.ReadValueAsButton();
 
         if (context.performed)
         {
-            lastPressedDirection = 1f;
+            _lastPressedDirection = 1f;
         }
     }
 
@@ -153,14 +164,6 @@ public sealed class PlayerInputReader : MonoBehaviour
     /// <param name="context"></param>
     private void OnJump(InputAction.CallbackContext context)
     {
-        jumpRequested = Time.timeScale > 0f;
-    }
-
-    /// <summary>
-    /// ジャンプのキャンセル処理
-    /// </summary>
-    public void ClearJumpRequest()
-    {
-        jumpRequested = false;
+        _jumpRequested = Time.timeScale > 0f;
     }
 }

@@ -12,6 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfb952d9b85281c3609e379de0fd5eda, type: 3}
   m_Name: EnemyCatalog
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCatalog
-  enemies:
-  - id: "\u30C6\u30B9\u30C8\u7528\u306E\u6575"
-    prefab: {fileID: 8037015100712895834, guid: 6fff6a1ed71088a459f366288d8e2458, type: 3}
+  _enemies:
+  - _id: "\u30C6\u30B9\u30C8\u7528\u306E\u6575"
+    _prefab: {fileID: 8037015100712895834, guid: 6fff6a1ed71088a459f366288d8e2458, type: 3}
+  - _id: siranai
+    _prefab: {fileID: 7743896693862657505, guid: 57f92a476ccb44a4cbee936ba1928507, type: 3}
+  - _id: dool
+    _prefab: {fileID: 7743896693862657505, guid: f6cae04d086c06c4980cecc5a664d88c, type: 3}
+  - _id: boon
+    _prefab: {fileID: 7743896693862657505, guid: 57deb408a47a49a4185ab77352d42fe1, type: 3}
+  - _id: kimo
+    _prefab: {fileID: 7743896693862657505, guid: 73559ae9e3ce0b049b73b0053a16e711, type: 3}
+  - _id: kabotya
+    _prefab: {fileID: 7743896693862657505, guid: e0432b6fe94156c4b98ad285f28d4a72, type: 3}

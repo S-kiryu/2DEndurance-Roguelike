@@ -1,15 +1,14 @@
 /// <summary>
-/// 再利用時に状態をリセットするための通知。
-/// Spawnは有効化前、Despawnは無効化前に呼ばれる。Awake前の呼び出しにも対応すること。
+/// プールを使いたいオブジェクトに実装するインターフェース
 /// </summary>
 public interface IPoolable
 {
     /// <summary>
-    /// スポーン処置
+    /// スポーンする個体を有効化する前に呼ばれる処理
     /// </summary>
     void OnPoolSpawned();
     /// <summary>
-    /// 削除処理
+    /// 返却する個体を非アクティブ化した後に呼ばれる処理
     /// </summary>
     void OnPoolDespawned();
 }

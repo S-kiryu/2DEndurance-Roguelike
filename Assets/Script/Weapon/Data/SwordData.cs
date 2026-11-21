@@ -9,16 +9,14 @@ using UnityEngine;
 )]
 public sealed class SwordData : WeaponData
 {
-    [SerializeField, Min(0f)]
-    private float attackRange = 1f;
+    public bool UsePlayerAnimation => _usePlayerAnimation;
 
-    [SerializeField, Range(0f, 360f)]
-    private float attackAngle = 90f;
+    public LayerMask TargetLayers => _targetLayers;
+
+    [Header("ナタ（プレイヤー本体のアニメーション）")]
+    [Tooltip("NataAttack ステート")]
+    [SerializeField] private bool _usePlayerAnimation;
 
     [SerializeField]
-    private LayerMask targetLayers;
-
-    public float AttackRange => attackRange;
-    public float AttackAngle => attackAngle;
-    public LayerMask TargetLayers => targetLayers;
+    private LayerMask _targetLayers;
 }
